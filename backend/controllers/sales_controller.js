@@ -1,0 +1,209 @@
+import AsyncHandler from "express-async-handler";
+import SalesReport from "../models/salesModel.js";
+import pdfkit from "pdfkit";
+import ExcelJS from "exceljs";
+
+const getSalesReportData = async (startDate, endDate, period) => {
+  let dateFilter = {};
+
+  if (period === "custom" && startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(
+      new Date(endDate).setDate(new Date(endDate).getDate() + 1)
+    );
+    dateFilter = { orderDate: { $gte: start, $lt: end } };
+    console.log("Custom date range filter:", dateFilter);
+  }
+
+  if (period === "daily") {
+    dateFilter = {
+      orderDate: {
+        $gte: new Date(new Date().setHours(0, 0, 0)),
+        $lt: new Date(),
+      },
+    };
+  } else if (period === "weekly") {
+    dateFilter = {
+      orderDate: {
+        $gte: new Date(new Date().setDate(new Date().getDate() - 7)),
+        $lt: new Date(),
+      },
+    };
+  } else if (period === "monthly") {
+    dateFilter = {
+      orderDate: {
+        $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+        $lt: new Date(),
+      },
+    };
+  }
+
+  return await SalesReport.find(dateFilter);
+};
+
+// Define the sales report generation and export functions
+export const get_sales_report = AsyncHandler(async (req, res) => {
+  console.log(req.query);
+  const { startDate = null, endDate = null, period = "daily" } = req.query;
+
+  console.log(
+    "Query Parameters - startDate:",
+    startDate,
+    "endDate:",
+    endDate,
+    "period:",
+    period
+  );
+
+  let dateFilter = {};
+
+  if (period === "custom" && startDate && endDate) {
+    const start = new Date(startDate);
+    const end = new Date(
+      new Date(endDate).setDate(new Date(endDate).getDate() + 1)
+    );
+    dateFilter = { orderDate: { $gte: start, $lt: end } };
+    console.log("Custom date range filter:", dateFilter);
+  }
+
+  if (period === "daily") {
+    dateFilter = {
+      orderDate: {
+        $gte: new Date(new Date().setHours(0, 0, 0)),
+        $lt: new Date(),
+      },
+    };
+  } else if (period === "weekly") {
+    dateFilter = {
+      orderDate: {
+        $gte: new Date(new Date().setDate(new Date().getDate() - 7)),
+        $lt: new Date(),
+      },
+    };
+  } else if (period === "monthly") {
+    dateFilter = {
+      orderDate: {
+        $gte: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+        $lt: new Date(),
+      },
+    };
+  }
+
+  console.log(dateFilter);
+
+  const reports = await SalesReport.find(dateFilter)
+    .populate("product")
+    .populate("customer");
+
+  const totalSalesCount = reports.length;
+  const totalOrderAmount = reports.reduce(
+    (acc, report) => acc + report.finalAmount,
+    0
+  );
+  const totalDiscount = reports.reduce(
+    (acc, report) => acc + report.discount + report.couponDeduction,
+    0
+  );
+
+  res.status(200).json({
+    reports,
+    totalSalesCount,
+    totalOrderAmount,
+    totalDiscount,
+  });
+});
+
+export const download_sales_report_pdf = AsyncHandler(async (req, res) => {
+  const { startDate, endDate, period } = req.query;
+  const reports = await getSalesReportData(startDate, endDate, period);
+
+  const pdfDoc = new pdfkit();
+  res.setHeader("Content-Disposition", "attachment; filename=sales_report.pdf");
+  pdfDoc.pipe(res);
+
+  // Title
+  pdfDoc.fontSize(20).text("Sales Report", { align: "center" }).moveDown(2);
+
+  // Loop through each report and display the data
+  reports.forEach((report, index) => {
+    pdfDoc.fontSize(12);
+    pdfDoc.text(
+      `==================================================================`
+    );
+    pdfDoc.text(`Report ${index + 1}:`);
+
+    pdfDoc.text(
+      `==================================================================`
+    );
+    pdfDoc.text(`Order ID: ${report.orderId}`);
+    pdfDoc.text(`Product Name: ${report.productName}`);
+    pdfDoc.text(`Quantity: ${report.quantity}`);
+    pdfDoc.text(`Unit Price: RS. ${report.unitPrice.toFixed(2)}`);
+    pdfDoc.text(`Total Price: RS. ${report.totalPrice.toFixed(2)}`);
+    pdfDoc.text(`Discount: RS. ${report.discount.toFixed(2)}`);
+    pdfDoc.text(`Coupon Deduction: RS. ${report.couponDeduction.toFixed(2)}`);
+    pdfDoc.text(`Final Amount: RS. ${report.finalAmount.toFixed(2)}`);
+    pdfDoc.text(
+      `Order Date: ${new Date(report.orderDate).toLocaleDateString()}`
+    );
+    pdfDoc.text(`Customer: ${report.customer}`); // You may need to replace this with customer name
+    pdfDoc.text(`Payment Method: ${report.paymentMethod}`);
+    pdfDoc.text(`Delivery Status: ${report.deliveryStatus}`);
+    pdfDoc.text(
+      `==================================================================`
+    );
+
+    pdfDoc.moveDown(); // Add space between reports
+  });
+
+  pdfDoc.end();
+});
+
+export const download_sales_report_xl = AsyncHandler(async (req, res) => {
+  const { startDate, endDate, period } = req.query;
+  const reports = await getSalesReportData(startDate, endDate, period);
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Sales Report");
+
+  worksheet.columns = [
+    { header: "Order ID", key: "orderId", width: 15 },
+    { header: "Product Name", key: "productName", width: 25 },
+    { header: "Quantity", key: "quantity", width: 10 },
+    { header: "Unit Price", key: "unitPrice", width: 15 },
+    { header: "Total Price", key: "totalPrice", width: 15 },
+    { header: "Discount", key: "discount", width: 15 },
+    { header: "Coupon Deduction", key: "couponDeduction", width: 15 },
+    { header: "Final Amount", key: "finalAmount", width: 15 },
+    { header: "Order Date", key: "orderDate", width: 20 },
+    { header: "Customer", key: "customer", width: 20 }, // You might want to use customer name or ID
+    { header: "Payment Method", key: "paymentMethod", width: 20 },
+    { header: "Delivery Status", key: "deliveryStatus", width: 15 },
+  ];
+
+  reports.forEach((report) => {
+    worksheet.addRow({
+      orderId: report.orderId,
+      productName: report.productName,
+      quantity: report.quantity,
+      unitPrice: report.unitPrice,
+      totalPrice: report.totalPrice,
+      discount: report.discount,
+      couponDeduction: report.couponDeduction,
+      finalAmount: report.finalAmount,
+      orderDate: report.orderDate.toLocaleDateString(), // Format if needed
+      customer: report.customer, // Assuming you have the customer name or ID here
+      paymentMethod: report.paymentMethod,
+      deliveryStatus: report.deliveryStatus,
+    });
+  });
+
+  res.setHeader(
+    "Content-Disposition",
+    "attachment; filename=sales_report.xlsx"
+  );
+  await workbook.xlsx.write(res);
+  res.end();
+});
+
+// ========================================================================
