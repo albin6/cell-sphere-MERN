@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import Banner from "./Banner";
 import { Button, Input } from "../ui/ui-components";
 import { ChevronRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
 import CategoryCard from "./CategoryCard";
 import ProductCard from "./ProductCard";
 import BrandCard from "./BrandCard";
@@ -11,20 +12,21 @@ import ErrorBoundary from "../errorBoundaries/ErrorBoundary";
 import Error from "../Error";
 import Shimmer from "../ui/HomeShimmer";
 
-const Home = () => {
+function Home() {
   const navigate = useNavigate();
   const { data, isError, isLoading, error } =
     useUserProductsData(fetchProductsDetails);
-  console.log(data);
   const [products, setProducts] = useState(null);
   const [categories, setCategories] = useState(null);
   const [brands, setBrands] = useState(null);
+  const [banners, setBanners] = useState([]);
 
   useEffect(() => {
     try {
       setProducts(data?.products || []);
       setCategories(data?.categories || []);
       setBrands(data?.brands || []);
+      setBanners(data?.banners || []);
     } catch (error) {
       console.error("Error setting data:", error);
     }
@@ -42,25 +44,7 @@ const Home = () => {
   return (
     <ErrorBoundary>
       <div className="min-h-screen w-full bg-white text-gray-800">
-        {/* Banner Section */}
-        <section className="relative h-[300px] sm:h-[400px] md:h-[500px] bg-gray-100">
-          <img
-            src="/placeholder.svg?height=500&width=1920"
-            alt="Latest smartphone"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 flex flex-col justify-center items-center text-center p-4 bg-white bg-opacity-70">
-            <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold mb-2 sm:mb-4 text-gray-800">
-              Discover the Latest Smartphones
-            </h1>
-            <p className="text-lg sm:text-xl md:text-2xl mb-4 sm:mb-8 text-gray-600">
-              Explore our wide range of cutting-edge devices
-            </p>
-            <Button className="bg-gray-800 text-white hover:bg-gray-700">
-              Shop Now
-            </Button>
-          </div>
-        </section>
+        <Banner />
 
         {/* Category List */}
         <section className="py-8 sm:py-12 md:py-16 px-4 md:px-8">
@@ -150,7 +134,10 @@ const Home = () => {
               Explore our wide selection of smartphones and find your perfect
               match
             </p>
-            <Button className="bg-gray-800 hover:bg-gray-700 text-white text-center flex mx-auto">
+            <Button
+              className="bg-gray-800 hover:bg-gray-700 text-white text-center flex mx-auto"
+              onClick={() => navigate("/products/list")}
+            >
               Shop All Smartphones <ChevronRight className="ml-2" />
             </Button>
           </div>
@@ -158,6 +145,6 @@ const Home = () => {
       </div>
     </ErrorBoundary>
   );
-};
+}
 
 export default Home;

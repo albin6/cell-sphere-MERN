@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import Header from "../../components/admin/Header";
 import Sidebar from "../../components/admin/Sidebar";
-import OrderManagement from "../../components/admin/OrderManagement";
+import BannerManagement from "../../components/admin/BannerManagement";
+import Header from "../../components/admin/Header";
 import { Menu } from "lucide-react";
 
-function OrderManagementPage() {
+function BannerManagementPage() {
   const [sideBarOpen, setSideBarOpen] = useState(false);
 
   const toggleSideBar = () => {
@@ -13,7 +13,7 @@ function OrderManagementPage() {
 
   const closeSidebar = () => setSideBarOpen(false);
   return (
-    <div className="flex  bg-gray-100">
+    <div className="flex bg-gray-100">
       <div className="hidden md:flex">
         <Sidebar open={true} onClose={closeSidebar} />
       </div>
@@ -34,12 +34,12 @@ function OrderManagementPage() {
       )}
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
-        <div className="container mx-auto p-4">
-          <OrderManagement />
-        </div>
+        <main className="container mx-auto p-4">
+          <BannerManagement />
+        </main>
       </div>
     </div>
   );
 }
 
-export default OrderManagementPage;
+export default BannerManagementPage;

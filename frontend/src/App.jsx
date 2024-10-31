@@ -37,6 +37,7 @@ import AboutPage from "./pages/user/AboutPage";
 import SalesReport from "./components/admin/SalesReport";
 import OfferModulePage from "./pages/admin/OfferModulePage";
 import SalesReportPage from "./pages/admin/SalesReportPage";
+import BannerManagementPage from "./pages/admin/BannerManagementPage";
 
 function AppLayout() {
   const admin = useSelector((state) => state.admin.adminInfo);
@@ -236,6 +237,14 @@ function AppLayout() {
         element={
           <RequireAuth>
             <SalesReportPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/banner"
+        element={
+          <RequireAuth>
+            <BannerManagementPage />
           </RequireAuth>
         }
       />

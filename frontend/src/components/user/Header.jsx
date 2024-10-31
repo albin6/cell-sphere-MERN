@@ -1,6 +1,6 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useState } from "react";
 import { Button, Input, IconButton, NavLink } from "../ui/ui-components";
-import { Search, Heart, ShoppingCart, User } from "lucide-react";
+import { Heart, ShoppingCart, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../redux/Slices/userSlice";
@@ -87,7 +87,7 @@ function Header() {
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               />
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
+                <div className="absolute right-0 mt-2 w-48 z-50 bg-white rounded-md shadow-lg py-1 z-10">
                   <Button
                     className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => {

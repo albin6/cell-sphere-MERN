@@ -111,7 +111,7 @@ const Cart = () => {
               <span>
                 {cart?.totalAmount > 10000
                   ? "Free"
-                  : `₹${cart?.discount?.toFixed(2)}`}
+                  : `₹${cart?.discount?.toFixed(2) || 0}`}
               </span>
             </div>
             <div className="flex justify-between mb-2">

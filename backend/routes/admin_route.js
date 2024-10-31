@@ -54,6 +54,12 @@ import {
   get_sales_report,
 } from "../controllers/sales_controller.js";
 import { get_dashboard_data } from "../controllers/chart_controller.js";
+import {
+  add_new_banner,
+  delete_banner,
+  get_banners,
+  update_banner_status,
+} from "../controllers/banner_controller.js";
 const admin_router = express.Router();
 
 // admin login / logout
@@ -305,6 +311,35 @@ admin_router.get(
   check_role(["admin"]),
   get_dashboard_data
 );
+
+// ==============================================================================
+
+admin_router
+  .route("/banner")
+  .get(
+    authenticate_admin_token,
+    normalizeUserMiddleware,
+    check_role(["admin"]),
+    get_banners
+  )
+  .post(
+    authenticate_admin_token,
+    normalizeUserMiddleware,
+    check_role(["admin"]),
+    add_new_banner
+  )
+  .delete(
+    authenticate_admin_token,
+    normalizeUserMiddleware,
+    check_role(["admin"]),
+    delete_banner
+  )
+  .patch(
+    authenticate_admin_token,
+    normalizeUserMiddleware,
+    check_role(["admin"]),
+    update_banner_status
+  );
 
 // -------------------------------------------------------
 // -------------------------------------------------------

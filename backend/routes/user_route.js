@@ -68,6 +68,7 @@ import {
   get_coupons_user,
 } from "../controllers/coupon_controller.js";
 import { check_role } from "../middleware/RBAC/check_role.js";
+import { get_all_active_banners } from "../controllers/banner_controller.js";
 const user_router = express.Router();
 
 user_router.post("/signup", register);
@@ -77,6 +78,7 @@ user_router.post("/verify-otp", verify_otp);
 user_router.post("/reset-password", reset_password);
 user_router.post("/logout", logout);
 user_router.get("/get-products-details", get_all_products_details);
+user_router.get("/banner", get_all_active_banners);
 
 // ----------------------------------------------------
 user_router.get(
@@ -341,6 +343,9 @@ user_router
     check_role(["user"]),
     update_wallet_balance
   );
+
+// ----------------------------------------------------
+// ----------------------------------------------------
 
 // ----------------------------------------------------
 // ----------------------------------------------------

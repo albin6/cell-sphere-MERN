@@ -14,6 +14,10 @@ import {
 } from "../utils/offer/offerCRUD";
 import { getWalletBalance } from "../utils/wallet/walletCRUD";
 import { getDashboardData } from "../utils/admin-dashboard/AdminDashboard";
+import {
+  getActiveBanners,
+  getUserActiveBanners,
+} from "../utils/banner/bannerCRUD";
 
 export function useUserAuth() {
   const user = useSelector((state) => state.user.userInfo);
@@ -368,5 +372,35 @@ export const useDashboard = () => {
   return useQuery({
     queryKey: ["dashboard"],
     queryFn: getDashboardData,
+  });
+};
+
+// ----------------------------------------------------------------
+
+// for getting banners
+export const useBanners = (queryFunc, currentPage, itemsPerPage) => {
+  return useQuery({
+    queryKey: ["banners", currentPage, itemsPerPage],
+    queryFn: () => queryFunc(currentPage, itemsPerPage),
+  });
+};
+
+// for getting banners in user side
+export const useUserBanners = () => {
+  return useQuery({
+    queryKey: ["userBanners"],
+    queryFn: getUserActiveBanners,
+  });
+};
+
+// for mutating banners
+export const useBannersMutation = (mutationFunc) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: mutationFunc,
+    onSuccess: () => {
+      queryClient.invalidateQueries("banners");
+      queryClient.invalidateQueries("userBanners");
+    },
   });
 };
