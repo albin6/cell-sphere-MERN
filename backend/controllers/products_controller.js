@@ -106,6 +106,7 @@ export const get_all_products_details = AsyncHandler(async (req, res) => {
 // GET /api/users/get_product/:id
 // GET /api/admin/products/:id
 export const get_product = AsyncHandler(async (req, res) => {
+  console.log("in get product admin");
   const productId = req.params.productId;
 
   const product = await Product.findOne({ _id: productId })
@@ -229,7 +230,10 @@ export const add_new_product = AsyncHandler(async (req, res) => {
 
 // PUT /api/admin/products/:producId
 export const update_product_details = AsyncHandler(async (req, res) => {
+  console.log("in update product details controller");
+  // console.log(req.body);
   const productId = req.params.productId;
+  // console.log(productId);
 
   const {
     name,
@@ -243,24 +247,36 @@ export const update_product_details = AsyncHandler(async (req, res) => {
     releaseDate,
     isFeatured,
     variants,
-  } = req.body;
+  } = req.body.data;
+
+  // console.log("Brand =>", brand, "category =>", category);
 
   // Create an object to map images to their respective variants
+
   const imagesByVariant = {};
 
   // Handle file uploads
-  if (req.files.length != 0 && req.files.length > 0) {
+  if (req.files && req.files.length > 0) {
     req.files.forEach((file) => {
-      const variantId = file.fieldname.split("[")[1].split("]")[0];
+      // Remove "data" from the beginning of each fieldname
+
+      const variantId = file.fieldname.split("[")[2].split("]")[0];
       if (!imagesByVariant[variantId]) {
         imagesByVariant[variantId] = [];
       }
-      imagesByVariant[variantId].push(file.filename);
+      imagesByVariant[variantId].push(file.path.split("/").pop());
     });
   }
 
+  // console.log("req.files==>", req.files);
+
+  // console.log(imagesByVariant);
+
+  // console.log("onee");
+
   try {
     const product_to_update = await Product.findById(productId);
+    console.log("two");
     if (!product_to_update) {
       return res
         .status(400)
@@ -269,6 +285,7 @@ export const update_product_details = AsyncHandler(async (req, res) => {
 
     // Fetch brand and category information from the database
     const brand_data = await Brand.findOne({ name: brand });
+    console.log("brand data =>", brand_data);
     if (!brand_data) {
       return res
         .status(400)
@@ -321,21 +338,45 @@ export const update_product_details = AsyncHandler(async (req, res) => {
       product_to_update.isFeatured = isFeatured;
     }
 
-    product_to_update.variants = variants.map((variant, index) => ({
-      color: variant.color,
-      ram: variant.ram,
-      storage: variant.storage,
-      price: Number(variant.price),
-      stock: Number(variant.stock),
-      sku: variant.sku,
-      images:
-        Object.keys(imagesByVariant).length != 0
-          ? imagesByVariant[index]
-          : variant.images, // Attach images to their respective variant
-    }));
+    const newImages = req.files.map((file) => file.filename); // or file.originalname if you want the original name
+
+    // console.log("new images from multer =>", newImages);
+
+    // If variants is an array, loop through and merge images
+    product_to_update.variants = product_to_update.variants = variants.map(
+      (variant, index) => {
+        // Extract existing images from the variant's images
+        let existingImages = (variant.images || []).map((img) => {
+          // Extract the image name from the 'preview' URL
+          const urlParts = img.preview.split("/"); // Split the URL by "/"
+          return urlParts[urlParts.length - 1]; // Get the last part of the URL (image name)
+        });
+
+        existingImages = existingImages.filter(
+          (img) => img.startsWith("v") || img.startsWith("data")
+        );
+        console.log("existing images =>", existingImages);
+
+        // Combine existing images with new images for the current variant
+        const newImagesForVariant = imagesByVariant[index] || []; // Get new images for the specific variant
+        console.log("new image by variant", index, "==>", newImagesForVariant);
+
+        return {
+          color: variant.color,
+          ram: variant.ram,
+          storage: variant.storage,
+          price: Number(variant.price),
+          stock: Number(variant.stock),
+          sku: variant.sku,
+          images: [...existingImages, ...newImagesForVariant], // Combine existing and new image names
+        };
+      }
+    );
 
     // Save the new product to the database
     await product_to_update.save();
+    console.log("updated product ==>", product_to_update);
+
     // If everything is successful, return the data
     res.status(200).json({ success: true, product_to_update, brand, category });
   } catch (error) {

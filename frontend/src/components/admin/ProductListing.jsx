@@ -149,55 +149,58 @@ export default function ProductListing() {
             </tr>
           </thead>
           <tbody>
-            {filteredProducts.map((product) => (
-              <tr key={product._id} className="border-b hover:bg-gray-50">
-                <td className="py-2 px-4">
-                  <img
-                    src={`${import.meta.env.VITE_API_BASE_URL}/products/${
-                      product.variants[0]?.images[0]
-                    }`}
-                    alt={product.name}
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                </td>
-                <td className="py-2 px-4">{product.name}</td>
-                <td className="py-2 px-4">{product.category?.title}</td>
-                <td className="py-2 px-4">{product.brand?.name}</td>
-                <td className="py-2 px-4">₹{product.price.toFixed(2)}</td>
-                <td className="py-2 px-4">{product.variants[0]?.stock || 0}</td>
-                <td className="py-2 px-4">
-                  <div className="flex items-center justify-evenly">
-                    <button
-                      onClick={() => handleEditProduct(product)}
-                      className="text-white mr-2 px-2 py-1 rounded bg-gray-800 hover:bg-gray-600"
-                    >
-                      Edit
-                    </button>
-                    <div className="flex justify-center">
-                      <Switch
-                        checked={product.is_active}
-                        onChange={() => {
-                          setOrderId(product._id);
-                          setIsConfirmationModalOpen(true);
-                        }}
-                        className={`${
-                          product.is_active ? "bg-gray-800" : "bg-gray-200"
-                        } relative inline-flex h-6 w-11 items-center rounded-full`}
+            {filteredProducts &&
+              filteredProducts.map((product) => (
+                <tr key={product._id} className="border-b hover:bg-gray-50">
+                  <td className="py-2 px-4">
+                    <img
+                      src={`${import.meta.env.VITE_API_BASE_URL}/products/${
+                        product.variants[0]?.images[0]
+                      }`}
+                      alt={product.name}
+                      className="w-16 h-16 object-cover rounded"
+                    />
+                  </td>
+                  <td className="py-2 px-4">{product.name}</td>
+                  <td className="py-2 px-4">{product.category?.title}</td>
+                  <td className="py-2 px-4">{product.brand?.name}</td>
+                  <td className="py-2 px-4">₹{product.price.toFixed(2)}</td>
+                  <td className="py-2 px-4">
+                    {product.variants[0]?.stock || 0}
+                  </td>
+                  <td className="py-2 px-4">
+                    <div className="flex items-center justify-evenly">
+                      <button
+                        onClick={() => handleEditProduct(product)}
+                        className="text-white mr-2 px-2 py-1 rounded bg-gray-800 hover:bg-gray-600"
                       >
-                        <span className="sr-only">Toggle listing</span>
-                        <span
+                        Edit
+                      </button>
+                      <div className="flex justify-center">
+                        <Switch
+                          checked={product.is_active}
+                          onChange={() => {
+                            setOrderId(product._id);
+                            setIsConfirmationModalOpen(true);
+                          }}
                           className={`${
-                            product.is_active
-                              ? "translate-x-6"
-                              : "translate-x-1"
-                          } inline-block h-4 w-4 transform rounded-full bg-white transition`}
-                        />
-                      </Switch>
+                            product.is_active ? "bg-gray-800" : "bg-gray-200"
+                          } relative inline-flex h-6 w-11 items-center rounded-full`}
+                        >
+                          <span className="sr-only">Toggle listing</span>
+                          <span
+                            className={`${
+                              product.is_active
+                                ? "translate-x-6"
+                                : "translate-x-1"
+                            } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                          />
+                        </Switch>
+                      </div>
                     </div>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                </tr>
+              ))}
           </tbody>
         </table>
         <Pagination

@@ -45,6 +45,8 @@ export default function ProductForm() {
     formState: { errors },
     setError,
     clearErrors,
+    getValues,
+    setValue,
   } = useForm({
     defaultValues: {
       name: "",
@@ -105,11 +107,14 @@ export default function ProductForm() {
       preview: URL.createObjectURL(file),
     }));
 
-    const updatedVariants = [...variantFields];
+    const currentVariants = getValues("variants");
+    const updatedVariants = [...currentVariants];
     updatedVariants[variantIndex].images = [
       ...updatedVariants[variantIndex].images,
       ...newImages,
     ];
+
+    setValue("variants", updatedVariants);
 
     if (updatedVariants[variantIndex].images.length >= 3) {
       clearErrors(`variants.${variantIndex}.images`);
@@ -119,21 +124,20 @@ export default function ProductForm() {
         message: "At least 3 images are required",
       });
     }
-
-    reset({
-      ...control._formValues,
-      variants: updatedVariants,
-    });
   };
 
   const removeImage = (variantIndex, imageIndex) => {
-    const updatedVariants = [...variantFields];
+    const currentVariants = getValues("variants");
+    const updatedVariants = [...currentVariants];
     updatedVariants[variantIndex].images.splice(imageIndex, 1);
+    setValue("variants", updatedVariants);
 
-    reset({
-      ...control._formValues,
-      variants: updatedVariants,
-    });
+    if (updatedVariants[variantIndex].images.length < 3) {
+      setError(`variants.${variantIndex}.images`, {
+        type: "manual",
+        message: "At least 3 images are required",
+      });
+    }
   };
 
   const startCropping = (variantIndex, imageIndex) => {
@@ -144,16 +148,14 @@ export default function ProductForm() {
   };
 
   const updateAvatar = (croppedImageBase64, croppedImageUrl) => {
-    const updatedVariants = [...variantFields];
+    const currentVariants = getValues("variants");
+    const updatedVariants = [...currentVariants];
     updatedVariants[currentVariantIndex].images[currentImageIndex] = {
       file: dataURLtoFile(croppedImageBase64, "cropped_image.jpg"),
       preview: croppedImageUrl,
     };
 
-    reset({
-      ...control._formValues,
-      variants: updatedVariants,
-    });
+    setValue("variants", updatedVariants);
 
     setCropModalOpen(false);
     setCurrentImage(null);

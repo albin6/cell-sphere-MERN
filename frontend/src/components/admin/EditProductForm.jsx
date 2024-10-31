@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { PlusCircle, X, Upload, Crop, ShoppingBag } from "lucide-react";
+import { X, Crop, ShoppingBag } from "lucide-react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import "react-image-crop/dist/ReactCrop.css";
-import CropperModal from "../imageCropper/CropperModal";
 
 import {
   Card,
@@ -29,6 +28,7 @@ import {
 } from "../../utils/products/adminProductListing";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import CropperModalEdit from "../imageCropper/CropperModalEdit";
 
 export default function EditProductForm() {
   const navigate = useNavigate();
@@ -99,7 +99,13 @@ export default function EditProductForm() {
           category: foundProduct.category.title,
           price: foundProduct.price,
           discount: foundProduct.discount,
-          variants: foundProduct.variants,
+          variants: foundProduct.variants.map((variant) => ({
+            ...variant,
+            images: variant.images.map((image) => ({
+              preview: `${import.meta.env.VITE_API_BASE_URL}/products/${image}`,
+              file: null,
+            })),
+          })),
           specifications: foundProduct.specifications,
           tags: foundProduct.tags.join(", "),
           releaseDate: new Date(foundProduct.releaseDate)
@@ -111,12 +117,14 @@ export default function EditProductForm() {
     }
   }, [data, productId, reset]);
 
-  const handleImageUpload = (event, variantIndex) => {
+  const handleImageUpload = async (event, variantIndex) => {
     const files = Array.from(event.target.files);
-    const newImages = files.map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
-    }));
+    const newImages = await Promise.all(
+      files.map(async (file) => {
+        const preview = URL.createObjectURL(file);
+        return { file, preview };
+      })
+    );
 
     const updatedVariants = [...variantFields];
     updatedVariants[variantIndex].images = [
@@ -156,10 +164,26 @@ export default function EditProductForm() {
     });
   };
 
-  const startCropping = (variantIndex, imageIndex) => {
+  const startCropping = async (variantIndex, imageIndex) => {
     setCurrentVariantIndex(variantIndex);
     setCurrentImageIndex(imageIndex);
-    setCurrentImage(variantFields[variantIndex].images[imageIndex].preview);
+    const image = variantFields[variantIndex].images[imageIndex];
+
+    if (image.file) {
+      setCurrentImage(image.preview);
+    } else {
+      try {
+        const response = await fetch(image.preview);
+        const blob = await response.blob();
+        const file = new File([blob], "image.jpg", { type: blob.type });
+        setCurrentImage(URL.createObjectURL(file));
+      } catch (error) {
+        console.error("Error fetching image:", error);
+        toast.error("Failed to load image for cropping");
+        return;
+      }
+    }
+
     setCropModalOpen(true);
   };
 
@@ -208,15 +232,26 @@ export default function EditProductForm() {
       });
       return;
     }
+
     console.log(data);
+    // Convert images to FormData
+
+    console.log(data);
+
     editProduct(
-      { id: productId, ...data },
+      { id: productId, data },
       {
-        onSuccess: () =>
-          toast.success("Prodcut Update Success", { position: "top-center" }),
+        onSuccess: () => {
+          toast.success("Product Update Success", { position: "top-center" });
+          navigate("/admin/products");
+        },
+        onError: (error) => {
+          toast.error("Failed to update product: " + error.message, {
+            position: "top-center",
+          });
+        },
       }
     );
-    navigate("/admin/products");
   };
 
   if (isLoading) {
@@ -464,12 +499,7 @@ export default function EditProductForm() {
                         {field.images.map((image, imageIndex) => (
                           <div key={imageIndex} className="relative">
                             <img
-                              src={
-                                image.preview ||
-                                `${
-                                  import.meta.env.VITE_API_BASE_URL
-                                }/products/${image}`
-                              }
+                              src={image.preview}
                               alt={`Variant ${variantIndex + 1} Image ${
                                 imageIndex + 1
                               }`}
@@ -663,7 +693,7 @@ export default function EditProductForm() {
       </Card>
 
       {cropModalOpen && (
-        <CropperModal
+        <CropperModalEdit
           updateAvatar={updateAvatar}
           closeModal={() => setCropModalOpen(false)}
           imageSrc={currentImage}

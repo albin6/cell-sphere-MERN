@@ -14,7 +14,7 @@ function AddProduct() {
   const closeSidebar = () => setSideBarOpen(false);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex bg-gray-100">
       {/* Sidebar for desktop (md and above) */}
       <div className="hidden md:flex">
         <Sidebar open={true} onClose={closeSidebar} />

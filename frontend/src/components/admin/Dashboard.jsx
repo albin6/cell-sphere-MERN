@@ -19,6 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useDashboard } from "../../hooks/CustomHooks";
+import Loading from "./Loading";
 
 const salesData = [
   { name: "Jan", sales: 0 },
@@ -52,10 +53,10 @@ export default function Dashboard() {
   }, [data]);
 
   if (isLoading) {
-    return <h3>Loading...</h3>;
+    return <Loading />;
   }
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex bg-gray-100">
       <div className="hidden md:flex">
         <Sidebar open={true} onClose={closeSidebar} />
       </div>
@@ -92,7 +93,7 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Sales"
-              value={`${Number(totalSales).toFixed(2)}`}
+              value={`${totalSales ? Number(totalSales).toFixed(2) : 0}`}
               icon={<DollarSignIcon />}
             />
             <StatCard

@@ -25,9 +25,10 @@ export const register = AsyncHandler(async (req, res) => {
   console.log(req.body);
   const is_user_exists = await User.findOne({ email });
 
-  console.log(is_user_exists);
+  console.log(is_user_exists === null);
 
-  if (!is_user_exists) {
+  if (is_user_exists === null) {
+    console.log("entered!!!!!!!!!!");
     const hashed_password = await hash_password(password);
     const new_user = await User.create({
       first_name,
@@ -132,10 +133,11 @@ export const login = AsyncHandler(async (req, res) => {
 });
 
 // generate an otp
-// POST /api/user/send-otp
+// POST /api/users/send-otp
 export const send_otp = AsyncHandler(async (req, res) => {
+  console.log("in send otp");
   const data = req.body;
-  console.log("log in controller ", data.email);
+  console.log(data.email);
 
   if (!validator.isEmail(data.email)) {
     return res.status(400).send({ message: "Invalid email address" });
@@ -144,7 +146,7 @@ export const send_otp = AsyncHandler(async (req, res) => {
   const is_user_exists = await User.findOne({ email: data.email });
   console.log(is_user_exists);
 
-  if (is_user_exists) {
+  if (!is_user_exists) {
     const otp = generateOTP();
     console.log(otp);
 

@@ -24,7 +24,7 @@ export const get_dashboard_data = AsyncHandler(async (req, res) => {
   const dashboard_data = {
     totalUsers: total_users_count,
     totalOrders: total_orders_count,
-    totalSales: total_sales[0].sum,
+    totalSales: total_sales[0]?.sum,
     totalPendingOrders: totalPendingOrders[0]?.totalPendingOrders,
   };
 

@@ -24,6 +24,7 @@ export const addNewProduct = async (productData) => {
 };
 
 export const fetchProductData = (productId) => {
+  console.log("product Id", productId);
   return async function () {
     const response = await adminAxiosInstance.get(
       `/api/admin/products/${productId}`

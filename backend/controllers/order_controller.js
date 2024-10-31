@@ -427,7 +427,11 @@ export const update_order_status = AsyncHandler(async (req, res) => {
 
     // Update the order status of the specific item
     item.order_status = new_status;
-
+    let sales_id;
+    await SalesReport.updateOne(
+      { orderId: order._id, product: item.product },
+      { deliveryStatus: new_status }
+    );
     // Handle stock adjustment and wallet refund if status is "Cancelled"
     if (new_status === "Cancelled") {
       const { product, variant, quantity, price, discount } = item;
@@ -470,10 +474,6 @@ export const update_order_status = AsyncHandler(async (req, res) => {
       }
 
       // Update SalesReport for the specific product within the order
-      await SalesReport.updateOne(
-        { orderId: order._id, product },
-        { deliveryStatus: "Cancelled" }
-      );
     }
 
     // Save the updated order

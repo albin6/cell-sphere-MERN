@@ -337,7 +337,7 @@ export default function CheckoutPage() {
                       pro.message === "Coupon applied successfully"
                   ) && <span className="text-green-800">Coupon Applied</span>}
                 <span>
-                  ₹{item.totalPrice} x {item.quantity}
+                  ₹{item.price} x {item.quantity}
                 </span>
               </div>
             ))}
@@ -346,7 +346,7 @@ export default function CheckoutPage() {
             <div className="border-t pt-4 mt-4">
               <div className="flex justify-between mb-2">
                 <span>Subtotal:</span>
-                <span>₹{cart?.totalAmount.toFixed(2)}</span>
+                <span>₹{Number(cart?.totalAmount).toFixed(2)}</span>
               </div>
               <div className="flex justify-between mb-2">
                 <span>Shipping:</span>
@@ -369,8 +369,8 @@ export default function CheckoutPage() {
                 <span>
                   ₹
                   {!isCouponApplied
-                    ? cart?.totalAmount.toFixed(2)
-                    : amountAfterApplyingCoupon.toFixed(2)}
+                    ? Number(cart?.totalAmount).toFixed(2)
+                    : Number(amountAfterApplyingCoupon).toFixed(2)}
                 </span>
               </div>
             </div>
