@@ -136,12 +136,20 @@ export const download_sales_report_pdf = AsyncHandler(async (req, res) => {
       `==================================================================`
     );
     pdfDoc.text(`Order ID: ${report.orderId}`);
-    pdfDoc.text(`Product Name: ${report.productName}`);
-    pdfDoc.text(`Quantity: ${report.quantity}`);
-    pdfDoc.text(`Unit Price: RS. ${report.unitPrice.toFixed(2)}`);
-    pdfDoc.text(`Total Price: RS. ${report.totalPrice.toFixed(2)}`);
-    pdfDoc.text(`Discount: RS. ${report.discount.toFixed(2)}`);
-    pdfDoc.text(`Coupon Deduction: RS. ${report.couponDeduction.toFixed(2)}`);
+    report.product.forEach((p) => {
+      pdfDoc.text(
+        "------------------------------------------------------------------"
+      );
+      pdfDoc.text(`Product Name: ${p.productName}`);
+      pdfDoc.text(`Quantity: ${p.quantity}`);
+      pdfDoc.text(`Unit Price: RS. ${p.unitPrice.toFixed(2)}`);
+      pdfDoc.text(`Total Price: RS. ${p.totalPrice.toFixed(2)}`);
+      pdfDoc.text(`Discount: RS. ${p.discount.toFixed(2)}`);
+      pdfDoc.text(`Coupon Deduction: RS. ${p.couponDeduction.toFixed(2)}`);
+    });
+    pdfDoc.text(
+      "------------------------------------------------------------------"
+    );
     pdfDoc.text(`Final Amount: RS. ${report.finalAmount.toFixed(2)}`);
     pdfDoc.text(
       `Order Date: ${new Date(report.orderDate).toLocaleDateString()}`
@@ -182,19 +190,29 @@ export const download_sales_report_xl = AsyncHandler(async (req, res) => {
   ];
 
   reports.forEach((report) => {
-    worksheet.addRow({
-      orderId: report.orderId,
-      productName: report.productName,
-      quantity: report.quantity,
-      unitPrice: report.unitPrice,
-      totalPrice: report.totalPrice,
-      discount: report.discount,
-      couponDeduction: report.couponDeduction,
-      finalAmount: report.finalAmount,
-      orderDate: report.orderDate.toLocaleDateString(), // Format if needed
-      customer: report.customer, // Assuming you have the customer name or ID here
-      paymentMethod: report.paymentMethod,
-      deliveryStatus: report.deliveryStatus,
+    const products = report.product.map((p) => ({
+      productName: p.productName,
+      quantity: p.quantity,
+      unitPrice: p.unitPrice,
+      totalPrice: p.totalPrice,
+      discount: p.discount,
+      couponDeduction: p.couponDeduction,
+    }));
+    products.forEach((product) => {
+      worksheet.addRow({
+        orderId: report.orderId,
+        productName: product.productName,
+        quantity: product.quantity,
+        unitPrice: product.unitPrice,
+        totalPrice: product.totalPrice,
+        discount: product.discount,
+        couponDeduction: product.couponDeduction,
+        finalAmount: report.finalAmount,
+        orderDate: report.orderDate.toLocaleDateString(), // Format if needed
+        customer: report.customer, // Assuming you have the customer name or ID here
+        paymentMethod: report.paymentMethod,
+        deliveryStatus: report.deliveryStatus,
+      });
     });
   });
 

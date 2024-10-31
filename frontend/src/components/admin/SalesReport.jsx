@@ -40,7 +40,18 @@ const SalesReport = () => {
         },
       });
       console.log(response.data);
-      setTotalDiscount(response.data.totalDiscount);
+      setTotalDiscount(
+        response.data.reports.reduce(
+          (acc, curr) =>
+            acc +
+            curr.product.reduce(
+              (ac, cur) => ac + cur.discount + cur.couponDeduction,
+              0
+            ),
+          0
+        ),
+        0
+      );
       setSalesData(response.data.reports);
     } catch (error) {
       console.error("Error fetching sales data:", error);
@@ -153,7 +164,7 @@ const SalesReport = () => {
                 <th className="border p-2 text-left">User</th>
                 <th className="border p-2 text-left">Date</th>
                 <th className="border p-2 text-left">Payment Method</th>
-                <th className="border p-2 text-left">Delivery Status</th>
+                <th className="border p-2 text-left">Products</th>
                 <th className="border p-2 text-left">Amount</th>
               </tr>
             </thead>
@@ -171,7 +182,7 @@ const SalesReport = () => {
                       {new Date(sale.orderDate).toLocaleDateString()}
                     </td>
                     <td className="border p-2">{sale.paymentMethod}</td>
-                    <td className="border p-2">{sale.deliveryStatus}</td>
+                    <td className="border p-2">{sale.product.length}</td>
                     <td className="border p-2">
                       ₹{sale.finalAmount.toFixed(2)}
                     </td>

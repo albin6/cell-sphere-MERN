@@ -6,35 +6,40 @@ const sales_report_schema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Product",
-    required: true,
-  },
-  productName: {
-    type: String,
-    required: true,
-  },
-  quantity: {
-    type: Number,
-    required: true,
-  },
-  unitPrice: {
-    type: Number,
-    required: true,
-  },
-  totalPrice: {
-    type: Number,
-    required: true,
-  },
-  discount: {
-    type: Number,
-    default: 0,
-  },
-  couponDeduction: {
-    type: Number,
-    default: 0,
-  },
+  product: [
+    {
+      product_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true,
+      },
+      productName: {
+        type: String,
+        required: true,
+      },
+      quantity: {
+        type: Number,
+        required: true,
+      },
+      unitPrice: {
+        type: Number,
+        required: true,
+      },
+      totalPrice: {
+        type: Number,
+        required: true,
+      },
+      discount: {
+        type: Number,
+        default: 0,
+      },
+      couponDeduction: {
+        type: Number,
+        default: 0,
+      },
+    },
+  ],
+
   finalAmount: {
     type: Number,
     required: true,

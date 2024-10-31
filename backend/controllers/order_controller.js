@@ -9,47 +9,51 @@ import SalesReport from "../models/salesModel.js";
 
 const createSalesReport = async (orderId) => {
   try {
-    const orders = await Order.find({ _id: orderId })
+    const order = await Order.findById(orderId)
       .populate("user")
       .populate("order_items.product");
 
-    // Initialize an array to hold all report entries
-    const reportEntries = [];
-
-    for (const order of orders) {
-      // Calculate the total price for each order and the final amount
-      let totalPrice = 0;
-
-      for (const item of order.order_items) {
-        const itemTotalPrice = item.price * item.quantity; // Calculate the total price for the item
-        totalPrice += itemTotalPrice; // Sum up total price for the order
-
-        // Calculate the discount amount for the item
-        const discountAmount = (item.discount / 100) * itemTotalPrice;
-
-        // Create the sales report entry
-        reportEntries.push({
-          orderId: order._id,
-          product: item.product._id,
-          productName: item.product.name || "Product Name", // Assuming the product schema has a name field
-          quantity: item.quantity,
-          unitPrice: item.price,
-          totalPrice: itemTotalPrice, // Total price for this item
-          discount: discountAmount, // Discount for this item
-          couponDeduction: order.coupon_discount || 0, // Coupon discount from the order
-          finalAmount: order.total_price_with_discount || 0, // Total amount after discount from the order
-          orderDate: order.placed_at, // Order placement date
-          customer: order.user._id, // Customer ID
-          paymentMethod: order.payment_method, // Payment method
-          deliveryStatus: order.order_items[0].order_status, // Assuming all items have the same status, take the first item
-        });
-      }
+    if (!order) {
+      console.log("Order not found");
+      return;
     }
 
-    // Insert all entries in one batch
-    await SalesReport.insertMany(reportEntries);
+    // Initialize an array to hold the product details for the report entry
+    const products = order.order_items.map((item) => {
+      const itemTotalPrice = item.price * item.quantity;
+      const discountAmount = (item.discount / 100) * itemTotalPrice;
 
-    console.log("Sales report entries created successfully!");
+      return {
+        product_id: item.product._id,
+        productName: item.product.name || "Product Name", // Assuming the product schema has a name field
+        quantity: item.quantity,
+        unitPrice: item.price,
+        totalPrice: itemTotalPrice,
+        discount: discountAmount,
+        couponDeduction: order.coupon_discount || 0,
+      };
+    });
+
+    // Calculate the final amount
+    const finalAmount =
+      order.total_price_with_discount ||
+      order.total_amount - order.coupon_discount;
+
+    // Create a single sales report entry for the order
+    const reportEntry = {
+      orderId: order._id,
+      product: products,
+      finalAmount: finalAmount,
+      orderDate: order.placed_at,
+      customer: order.user._id,
+      paymentMethod: order.payment_method,
+      deliveryStatus: order.order_items[0].order_status, // Assuming all items have the same status
+    };
+
+    // Insert the entry into the SalesReport collection
+    await SalesReport.create(reportEntry);
+
+    console.log("Sales report entry created successfully!");
   } catch (error) {
     console.error("Error creating sales report:", error);
   }
@@ -461,6 +465,11 @@ export const update_order_status = AsyncHandler(async (req, res) => {
         // Calculate refund amount
         const refundAmount = price * (1 - discount / 100);
         user_wallet.balance += refundAmount;
+
+        await SalesReport.updateOne(
+          { orderId: order._id, product: item.product },
+          { finalAmount: refundAmount }
+        );
 
         // Record the refund transaction
         user_wallet.transactions.push({

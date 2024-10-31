@@ -10,10 +10,10 @@ export const useMouseOverZoom = (
 
   useEffect(() => {
     const el = sourceRef.current;
+
     if (!el) return;
 
     const handleMouseMove = (e) => {
-      console.log("Mouse over");
       const rect = el.getBoundingClientRect();
       setState({
         x: e.clientX - rect.left,
@@ -60,13 +60,15 @@ export const useMouseOverZoom = (
   useEffect(() => {
     if (sourceRef.current && targetRef.current) {
       const ctx = targetRef.current.getContext("2d");
-      if (ctx) {
+      const img = sourceRef.current;
+
+      if (ctx && img.complete) {
+        // Check if the image is fully loaded
         if (isActive) {
           const { left, top, width, height } = zoomBounds;
-          const imageRatio =
-            sourceRef.current.naturalWidth / sourceRef.current.width;
+          const imageRatio = img.naturalWidth / img.width;
           ctx.drawImage(
-            sourceRef.current,
+            img,
             left * imageRatio,
             top * imageRatio,
             width * imageRatio,
