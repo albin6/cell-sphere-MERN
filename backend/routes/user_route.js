@@ -69,6 +69,7 @@ import {
 } from "../controllers/coupon_controller.js";
 import { check_role } from "../middleware/RBAC/check_role.js";
 import { get_all_active_banners } from "../controllers/banner_controller.js";
+import { handle_chat } from "../services/gemini_ai.js";
 const user_router = express.Router();
 
 user_router.post("/signup", register);
@@ -346,6 +347,8 @@ user_router
 
 // ----------------------------------------------------
 // ----------------------------------------------------
+
+user_router.post("/chat", handle_chat);
 
 // ----------------------------------------------------
 // ----------------------------------------------------

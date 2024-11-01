@@ -38,6 +38,7 @@ import SalesReport from "./components/admin/SalesReport";
 import OfferModulePage from "./pages/admin/OfferModulePage";
 import SalesReportPage from "./pages/admin/SalesReportPage";
 import BannerManagementPage from "./pages/admin/BannerManagementPage";
+import Chat from "./services/Chat";
 
 function AppLayout() {
   const admin = useSelector((state) => state.admin.adminInfo);
@@ -256,6 +257,7 @@ function App() {
   return (
     <>
       <Router>
+        <Chat />
         <ToastContainer />
         <AppLayout />
       </Router>
