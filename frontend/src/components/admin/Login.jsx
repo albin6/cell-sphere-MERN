@@ -124,15 +124,6 @@ export default function Login() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center"></div>
-                  <div className="text-sm">
-                    <Link className="font-medium text-gray-600 hover:text-gray-500">
-                      Forgot your password?
-                    </Link>
-                  </div>
-                </div>
-
                 <div>
                   <Button
                     type="submit"
