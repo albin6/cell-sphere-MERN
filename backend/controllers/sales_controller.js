@@ -7,11 +7,11 @@ const getSalesReportData = async (startDate, endDate, period) => {
   let dateFilter = {};
 
   if (period === "custom" && startDate && endDate) {
-    const start = new Date(startDate);
-    const end = new Date(
-      new Date(endDate).setDate(new Date(endDate).getDate() + 1)
-    );
-    dateFilter = { orderDate: { $gte: start, $lt: end } };
+    const start = new Date(startDate).setHours(0, 0, 0, 0);
+    const end = new Date(endDate).setHours(23, 59, 59, 999);
+    // const start = new Date(startDate);
+    // const end = new Date(endDate);
+    dateFilter = { orderDate: { $gte: new Date(start), $lte: new Date(end) } };
     console.log("Custom date range filter:", dateFilter);
   }
 
@@ -58,11 +58,11 @@ export const get_sales_report = AsyncHandler(async (req, res) => {
   let dateFilter = {};
 
   if (period === "custom" && startDate && endDate) {
-    const start = new Date(startDate);
-    const end = new Date(
-      new Date(endDate).setDate(new Date(endDate).getDate() + 1)
-    );
-    dateFilter = { orderDate: { $gte: start, $lt: end } };
+    const start = new Date(startDate).setHours(0, 0, 0, 0);
+    const end = new Date(endDate).setHours(23, 59, 59, 999);
+    // const start = new Date(startDate);
+    // const end = new Date(endDate);
+    dateFilter = { orderDate: { $gte: new Date(start), $lte: new Date(end) } };
     console.log("Custom date range filter:", dateFilter);
   }
 

@@ -18,7 +18,7 @@ import Pagination from "../user/Pagination";
 export default function ProductListing() {
   // ===========================================================================
   // ========================== for pagination =================================
-  const itemsPerPage = 4;
+  const itemsPerPage = 7;
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
 
