@@ -234,11 +234,14 @@ const BrandManagement = () => {
           </table>
         </div>
       )}
-      <Pagination
+      {
+        brands.length > 0 && 
+        <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         paginate={paginate}
       />
+      }
 
       {/* Edit Brand Modal */}
       {isModalOpen && editingBrand && (

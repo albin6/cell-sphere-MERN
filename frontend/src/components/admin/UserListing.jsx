@@ -122,11 +122,13 @@ export default function UserListing() {
           ))}
         </tbody>
       </table>
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        paginate={paginate}
-      />
+      {filteredUserList.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          paginate={paginate}
+        />
+      )}
       <AdminBlockUserModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

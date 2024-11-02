@@ -13,9 +13,10 @@ const otp_schema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 60 * 1,
   },
 });
+
+otp_schema.index({ createdAt: 1 }, { expireAfterSeconds: 60 });
 
 otp_schema.pre("save", async function (next) {
   console.log("New document saved to the database");

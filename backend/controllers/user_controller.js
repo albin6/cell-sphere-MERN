@@ -156,31 +156,52 @@ export const send_otp = AsyncHandler(async (req, res) => {
     });
 
     send_verification_email(data.email, otp);
-    res.json({ success: true, message: "OTP sent successfully" });
-
-    let intervalId;
-
-    const deleteExpiredOTPs = async () => {
-      const now = new Date();
-      const result = await OTP.deleteMany({
-        createdAt: { $lte: new Date(now.getTime() - 60 * 1000) }, // 1 minute ago
-      });
-
-      // If no OTPs were deleted, stop the interval
-      if (result.deletedCount === 0) {
-        clearInterval(intervalId);
-        console.log("No expired OTPs found. Stopping the interval.");
-      } else {
-        console.log(`${result.deletedCount} expired OTP(s) deleted.`);
-      }
-    };
-
-    // Start the interval when needed
-    intervalId = setInterval(deleteExpiredOTPs, 5000);
+    res.json({
+      success: true,
+      message: "OTP sent successfully. Please check your email.",
+    });
   } else {
     return res
       .status(409)
       .json({ success: false, message: "User is already registered" });
+  }
+});
+
+// ===========================================================================================
+// ===========================================================================================
+
+// for forgot password
+// POST /api/users/send-otp-forgotpassword
+export const send_otp_for_forgot_password = AsyncHandler(async (req, res) => {
+  console.log("in send otp");
+  const data = req.body;
+  console.log(data.email);
+
+  if (!validator.isEmail(data.email)) {
+    return res.status(400).send({ message: "Invalid email address" });
+  }
+
+  const is_user_exists = await User.findOne({ email: data.email });
+  console.log(is_user_exists);
+
+  if (is_user_exists) {
+    const otp = generateOTP();
+    console.log(otp);
+
+    await OTP.create({
+      email: data.email,
+      otp,
+    });
+
+    send_verification_email(data.email, otp);
+    res.json({
+      success: true,
+      message: "OTP sent successfully. Please check your email.",
+    });
+  } else {
+    return res
+      .status(409)
+      .json({ success: false, message: "User Not Exists!" });
   }
 });
 

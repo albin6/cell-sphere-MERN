@@ -2,14 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 
-export const OTPModal = ({
-  isOpen,
-  closeModal,
-  onSubmit,
-  onResendOTP,
-  otpMessage,
-  otpErrMessage,
-}) => {
+export const OTPModal = ({ isOpen, closeModal, onSubmit, onResendOTP }) => {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timeLeft, setTimeLeft] = useState(60); // 1 minute in seconds
 
@@ -82,17 +75,6 @@ export const OTPModal = ({
                     Please enter the 6-digit OTP sent to your phone.
                   </p>
                 </div>
-                {otpMessage && (
-                  <p className="mt-2 text-center text-sm text-green-600">
-                    {otpMessage}
-                  </p>
-                )}
-
-                {otpErrMessage && (
-                  <p className="mt-2 text-center text-sm text-red-700">
-                    {otpErrMessage}
-                  </p>
-                )}
                 <form onSubmit={handleSubmit} className="mt-4">
                   <div className="flex justify-center space-x-2">
                     {otp.map((data, index) => {

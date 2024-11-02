@@ -124,11 +124,14 @@ function CategoryTable() {
             ))}
         </tbody>
       </table>
-      <Pagination
+      {
+        categories.length > 0 &&
+       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         paginate={paginate}
       />
+      }
       {isModalOpen && (
         <EditCategoryModal
           category={editingCategory}

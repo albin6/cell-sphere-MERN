@@ -6,6 +6,7 @@ import * as Yup from "yup";
 import { axiosInstance } from "../../config/axiosInstance";
 import { OTPModal } from "./OTPEnterModal";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 // Form validation schema using Yup for email
 const ForgotPasswordSchema = Yup.object({
@@ -17,38 +18,28 @@ const ForgotPasswordSchema = Yup.object({
 export default function ForgotPassword() {
   const navigate = useNavigate();
   const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
-  const [otpMessage, setOtpMessage] = useState("");
-  const [otpErrMessage, setOtpErrMessage] = useState("");
   const [formData, setFormData] = useState(null);
-  const [error, setError] = useState("");
-  const [errorEmailVerify, setErrorEmailVerify] = useState("");
-  const [message, setMessage] = useState("");
 
   const handleSubmit = async (values) => {
     console.log("Signup attempted with:", values);
-    setErrorEmailVerify("");
     setFormData((prev) => (prev = values));
     try {
-      const response = await axiosInstance.post("/api/users/send-otp", {
-        email: values.email,
-        user: true,
-      });
-      if (response?.data?.success) {
-        setIsOTPModalOpen(true);
-        setOtpMessage("OTP sent successfully. Please check your email.");
-        setOtpErrMessage("");
-      }
+      const response = await axiosInstance.post(
+        "/api/users/send-otp-forgotpassword",
+        {
+          email: values.email,
+        }
+      );
+      setIsOTPModalOpen(true);
+      toast.success(response.data.message, { position: "top-center" });
     } catch (error) {
       setIsOTPModalOpen(false);
-      if (error?.response?.status) {
-        setErrorEmailVerify(error.response?.data?.message);
-      }
+      toast.error(error.response.data.message, { position: "top-center" });
       console.log(error);
     }
   };
 
   const handleFormSubmit = async (userId) => {
-    setError("");
     navigate(`/users/reset-password/${userId}`);
   };
 
@@ -61,36 +52,26 @@ export default function ForgotPassword() {
         email: formData.email,
       });
       console.log(response?.data);
-      if (response.data.invalid) {
-        setOtpErrMessage(response.data.message);
-        setOtpMessage("");
-      }
-
-      if (response.data.expires) {
-        setOtpErrMessage(response.data.message);
-        setOtpMessage("");
-      }
-
-      if (response?.data?.success) {
-        setIsOTPModalOpen(false);
-        handleFormSubmit(response.data.user._id);
-      }
+      toast.success(response.data.message, { position: "top-center" });
+      setIsOTPModalOpen(false);
+      handleFormSubmit(response.data.user._id);
     } catch (error) {
+      toast.error(error.response.data.message, { position: "top-center" });
       console.error("Error verifying OTP:", error);
     }
   };
 
   const handleOTPResend = async () => {
     try {
-      setOtpErrMessage("");
-      const response = await axiosInstance.post("/api/users/send-otp", {
-        email: formData.email,
-      });
-      if (response.data.success) {
-        setOtpMessage("OTP sent successfully. Please check your email.");
-        setOtpErrMessage("");
-      }
+      const response = await axiosInstance.post(
+        "/api/users/send-otp-forgotpassword",
+        {
+          email: formData.email,
+        }
+      );
+      toast.success(response.data.message, { position: "top-center" });
     } catch (error) {
+      toast.error(error.response.data.message, { position: "top-center" });
       console.log(error);
     }
   };
@@ -108,16 +89,6 @@ export default function ForgotPassword() {
               Enter your email to receive a password reset link
             </p>
           </div>
-          {errorEmailVerify && (
-            <div className="mt-3 text-base text-center text-red-600">
-              {errorEmailVerify}
-            </div>
-          )}
-          {message && (
-            <div className="mt-3 text-base text-center text-green-600">
-              {message}
-            </div>
-          )}
           <Formik
             initialValues={{ email: "" }}
             validationSchema={ForgotPasswordSchema}
@@ -168,8 +139,6 @@ export default function ForgotPassword() {
             closeModal={() => setIsOTPModalOpen(false)}
             onSubmit={handleOTPSubmit}
             onResendOTP={handleOTPResend}
-            otpMessage={otpMessage}
-            otpErrMessage={otpErrMessage}
           />
         </div>
       </div>

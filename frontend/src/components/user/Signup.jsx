@@ -8,6 +8,7 @@ import CreateUserIcon from "../../assets/CreateUserIcon";
 import { axiosInstance } from "../../config/axiosInstance";
 import { OTPModal } from "./OTPEnterModal";
 import GoogleAuth from "../ui/google/GoogleAuth";
+import { toast } from "react-toastify";
 
 // Validation Schema
 const validationSchema = Yup.object({
@@ -40,11 +41,8 @@ const validationSchema = Yup.object({
 export default function Signup() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [error, setError] = useState("");
   const [form_data, setFormData] = useState(null);
   const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
-  const [otpMessage, setOtpMessage] = useState("");
-  const [otpErrMessage, setOtpErrMessage] = useState("");
 
   const handleSubmit = async (values) => {
     console.log("Signup attempted with:", values);
@@ -55,14 +53,10 @@ export default function Signup() {
       });
       if (response?.data?.success) {
         setIsOTPModalOpen(true);
-        setOtpMessage("OTP sent successfully. Please check your email.");
-        setOtpErrMessage("");
-        setError("");
+        toast.success(response.data.message, { position: "top-center" });
       }
     } catch (error) {
-      if (error?.response) {
-        setError(error.response?.data?.message);
-      }
+      toast.error(error.response.data.message, { position: "top-center" });
       console.log(error);
     }
   };
@@ -76,21 +70,11 @@ export default function Signup() {
         email: form_data.email,
       });
       console.log(response?.data);
-      if (response.data.invalid) {
-        setOtpErrMessage(response.data.message);
-        setOtpMessage("");
-      }
-
-      if (response.data.expires) {
-        setOtpErrMessage(response.data.message);
-        setOtpMessage("");
-      }
-
-      if (response?.data?.success) {
-        setIsOTPModalOpen(false);
-        handleFormSubmit();
-      }
+      toast.success(response.data.message, { position: "top-center" });
+      setIsOTPModalOpen(false);
+      handleFormSubmit();
     } catch (error) {
+      toast.error(error.response.data.message, { position: "top-center" });
       console.error("Error verifying OTP:", error);
     }
   };
@@ -101,18 +85,15 @@ export default function Signup() {
       const response = await axiosInstance.post("/api/users/send-otp", {
         email: form_data.email,
       });
-      if (response.data.success) {
-        setOtpMessage("OTP sent successfully. Please check your email.");
-        setOtpErrMessage("");
-      }
+      toast.success(response.data.message);
     } catch (error) {
+      toast.error(error.response.data.message, { position: "top-center" });
       console.log(error);
     }
   };
 
   const handleFormSubmit = async () => {
     try {
-      setError("");
       const response = await axiosInstance.post("/api/users/signup", {
         first_name: form_data.firstName,
         last_name: form_data.lastName,
@@ -127,9 +108,7 @@ export default function Signup() {
         navigate("/");
       }
     } catch (error) {
-      if (error?.response) {
-        setError(error.response?.data?.message);
-      }
+      toast.error(error.response.data.message, { position: "top-center" });
       console.log(error);
     }
     // Add your signup logic here
@@ -156,9 +135,6 @@ export default function Signup() {
                 Join our smartphone community
               </p>
             </div>
-            {error && (
-              <p className="mb-4 text-center text-base text-red-700">{error}</p>
-            )}
             <Formik
               initialValues={{
                 firstName: "",
@@ -325,8 +301,6 @@ export default function Signup() {
               closeModal={() => setIsOTPModalOpen(false)}
               onSubmit={handleOTPSubmit}
               onResendOTP={resendOTPHandle}
-              otpMessage={otpMessage}
-              otpErrMessage={otpErrMessage}
             />
             <div className="text-center mt-4">
               <p className="text-sm text-gray-600">

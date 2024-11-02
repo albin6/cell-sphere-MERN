@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../redux/Slices/userSlice";
 import { axiosInstance } from "../../config/axiosInstance";
 import { searchContext } from "../../context/Search";
+import { toast } from "react-toastify";
 
 function Header() {
   const location = useLocation();
@@ -26,6 +27,7 @@ function Header() {
       await axiosInstance.post("/api/users/logout");
       localStorage.removeItem("user_access_token");
       dispatch(logoutUser());
+      toast.success("Logout Success", { position: "top-center" });
       navigate("/");
     } catch (error) {
       console.log(error);
@@ -87,7 +89,7 @@ function Header() {
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               />
               {isUserMenuOpen && (
-                <div className="absolute right-0 mt-2 w-48 z-50 bg-white rounded-md shadow-lg py-1 z-10">
+                <div className="absolute right-0 mt-2 w-48 z-50 bg-white rounded-md shadow-lg py-1">
                   <Button
                     className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => {

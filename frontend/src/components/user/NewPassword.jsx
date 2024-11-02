@@ -5,6 +5,7 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { axiosInstance } from "../../config/axiosInstance";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 // Form validation schema using Yup
 const NewPasswordSchema = Yup.object({
@@ -25,23 +26,19 @@ const NewPasswordSchema = Yup.object({
 export default function NewPassword() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
 
   const handleSubmit = async (values, { resetForm }) => {
-    setError("");
-    setMessage("");
     try {
       // Send the new password to the backend API
       const response = await axiosInstance.post("/api/users/reset-password", {
         id,
         password: values.password,
       });
-      setMessage(response?.data?.message);
+      toast.success(response.data.message, { position: "top-center" });
       resetForm();
       setTimeout(() => navigate("/login"), 1000);
     } catch (err) {
-      setError("Failed to reset password.");
+      toast.error("Failed to reset password.", { position: "top-center" });
       resetForm();
     }
   };
@@ -59,16 +56,6 @@ export default function NewPassword() {
               Enter your new password below
             </p>
           </div>
-          {error && (
-            <div className="mt-3 text-base text-center text-red-600">
-              {error}
-            </div>
-          )}
-          {message && (
-            <div className="mt-3 text-base text-center text-green-600">
-              {message}
-            </div>
-          )}
           <Formik
             initialValues={{ password: "", confirmPassword: "" }}
             validationSchema={NewPasswordSchema}

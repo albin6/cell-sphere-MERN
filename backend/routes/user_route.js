@@ -9,6 +9,7 @@ import {
   new_access_token_generate,
   reset_the_password,
   check_current_password,
+  send_otp_for_forgot_password,
 } from "../controllers/user_controller.js";
 import {
   get_all_products_details,
@@ -75,6 +76,7 @@ const user_router = express.Router();
 user_router.post("/signup", register);
 user_router.post("/login", login);
 user_router.post("/send-otp", send_otp);
+user_router.post("/send-otp-forgotpassword", send_otp_for_forgot_password);
 user_router.post("/verify-otp", verify_otp);
 user_router.post("/reset-password", reset_password);
 user_router.post("/logout", logout);

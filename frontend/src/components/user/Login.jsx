@@ -8,6 +8,7 @@ import { axiosInstance } from "../../config/axiosInstance";
 import { useDispatch } from "react-redux";
 import { setUserDetails } from "../../redux/Slices/userSlice";
 import GoogleAuth from "../ui/google/GoogleAuth";
+import { toast } from "react-toastify";
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -36,22 +37,9 @@ export default function Login() {
       console.log("Server response:", response.data);
 
       dispatch(setUserDetails(response.data.user));
+      toast.success(response.data.message, { position: "top-center" });
     } catch (error) {
-      if (error?.response?.status === 401) {
-        setError(error?.response?.data?.message); // "Invalid email or password"
-      }
-      if (error?.response?.status === 404) {
-        setError(error?.response?.data?.message); // "Credentials not found. Please create a new account"
-      }
-      if (error?.response?.status === 500) {
-        setError(error?.response?.data?.message); // "You are blocked. Not able to login"
-      }
-      if (error?.response?.status) {
-        setError(
-          error?.response?.data?.message ||
-            "An error occurred. Please try again."
-        );
-      }
+      toast.error(error.response.data.message, { position: "top-center" });
     }
   };
 

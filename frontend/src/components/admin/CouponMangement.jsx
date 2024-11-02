@@ -322,11 +322,15 @@ const CouponManagement = () => {
       </div>
 
       {/* Pagination */}
-      <Pagination
+      {
+        coupons.length > 0 &&
+        <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         paginate={paginate}
       />
+      }
+      
 
       {/* Modal for adding/editing coupons */}
       {isModalOpen && (
