@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import session from "express-session";
 import cookieParser from "cookie-parser";
+import "./jobs/otp_cleanup_job.js";
 import connectDB from "./config/connectDB.js";
 import user_router from "./routes/user_route.js";
 import passport from "passport";

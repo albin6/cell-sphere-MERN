@@ -286,7 +286,7 @@ function ProductDetails() {
         ref={targetRef}
         width="200"
         height="500"
-        className="absolute pointer-events-none bottom-full translate-y-1/2 left-3/4 md:-translate-y-3/4 md:translate-x-0 md:bottom-16 md:left-1/2 border-8 w-2/5 h-96 z-10"
+        className="absolute bg-white pointer-events-none bottom-full translate-y-1/2 left-3/4 md:-translate-y-3/4 md:translate-x-0 md:bottom-16 md:left-1/2 border-8 w-2/5 h-96 z-10"
         style={{
           display: isActive ? "block" : "none",
         }}

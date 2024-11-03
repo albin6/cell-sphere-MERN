@@ -25,6 +25,7 @@ import {
 } from "../../hooks/CustomHooks";
 import {
   addNewProduct,
+  fetchDataForAddProduct,
   fetchProductsData,
 } from "../../utils/products/adminProductListing";
 import { useNavigate } from "react-router-dom";
@@ -32,7 +33,7 @@ import { toast } from "react-toastify";
 
 export default function ProductForm() {
   const navigate = useNavigate();
-  const { data, isError, isLoading } = useProductsData(fetchProductsData);
+  const { data, isError, isLoading } = useProductsData(fetchDataForAddProduct);
   const { mutate: addProduct } = useProductsDataMutation(addNewProduct);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);

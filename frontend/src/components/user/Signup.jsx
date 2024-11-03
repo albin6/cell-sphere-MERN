@@ -9,6 +9,7 @@ import { axiosInstance } from "../../config/axiosInstance";
 import { OTPModal } from "./OTPEnterModal";
 import GoogleAuth from "../ui/google/GoogleAuth";
 import { toast } from "react-toastify";
+import OTPSendingLoadingSpinner from "./loading/OTPSendingLoadingSpinner";
 
 // Validation Schema
 const validationSchema = Yup.object({
@@ -43,8 +44,10 @@ export default function Signup() {
   const dispatch = useDispatch();
   const [form_data, setFormData] = useState(null);
   const [isOTPModalOpen, setIsOTPModalOpen] = useState(false);
+  const [otpSpinnerOpen, setOtpSpinnerOpen] = useState(false);
 
   const handleSubmit = async (values) => {
+    setOtpSpinnerOpen(true);
     console.log("Signup attempted with:", values);
     setFormData((prev) => (prev = values));
     try {
@@ -52,6 +55,7 @@ export default function Signup() {
         email: values.email,
       });
       if (response?.data?.success) {
+        setOtpSpinnerOpen(false);
         setIsOTPModalOpen(true);
         toast.success(response.data.message, { position: "top-center" });
       }
@@ -80,11 +84,12 @@ export default function Signup() {
   };
 
   const resendOTPHandle = async () => {
+    setOtpSpinnerOpen(true);
     try {
-      setOtpErrMessage("");
       const response = await axiosInstance.post("/api/users/send-otp", {
         email: form_data.email,
       });
+      setOtpSpinnerOpen(false);
       toast.success(response.data.message);
     } catch (error) {
       toast.error(error.response.data.message, { position: "top-center" });
@@ -296,6 +301,7 @@ export default function Signup() {
                 </Form>
               )}
             </Formik>
+            {otpSpinnerOpen && <OTPSendingLoadingSpinner />}
             <OTPModal
               isOpen={isOTPModalOpen}
               closeModal={() => setIsOTPModalOpen(false)}

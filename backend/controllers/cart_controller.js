@@ -37,6 +37,7 @@ export const add_product_to_cart = AsyncHandler(async (req, res) => {
 
     console.log(price);
 
+    console.log((price * discount) / 100);
     const discountAmount = (price * discount) / 100;
     const totalPrice = price - discountAmount;
 

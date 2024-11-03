@@ -1,5 +1,4 @@
 import React from "react";
-import { Heart, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function ProductCard({ product }) {
@@ -30,10 +29,14 @@ function ProductCard({ product }) {
         </div>
         <div className="flex flex-wrap items-baseline mb-2">
           <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">
-            ₹{product?.price}
+            ₹
+            {(
+              product?.price -
+              (product?.price * product?.discount) / 100
+            ).toFixed(2)}
           </span>
           <span className="text-xs sm:text-sm text-gray-500 line-through ml-2">
-            ₹12,999
+            ₹{product?.price}
           </span>
           <span className="text-xs sm:text-sm text-green-600 ml-2">
             {product?.discount}% Off

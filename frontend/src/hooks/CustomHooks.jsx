@@ -66,10 +66,17 @@ export const useBrandListMutation = (mutationFunc) => {
 
 // -------------------------------------------------------------
 // for products
-export const useProductsData = (queryFunc, currentPage, itemsPerPage) => {
+export const useProductsData = (
+  queryFunc,
+  currentPage,
+  itemsPerPage,
+  filterCategory,
+  sortBy
+) => {
+  console.log(currentPage, itemsPerPage, filterCategory, sortBy);
   return useQuery({
-    queryKey: ["products", currentPage, itemsPerPage],
-    queryFn: () => queryFunc(currentPage, itemsPerPage),
+    queryKey: ["products", currentPage, itemsPerPage, filterCategory, sortBy],
+    queryFn: () => queryFunc(currentPage, itemsPerPage, filterCategory, sortBy),
   });
 };
 

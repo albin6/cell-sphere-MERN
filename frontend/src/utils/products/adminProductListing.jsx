@@ -1,12 +1,27 @@
 import { adminAxiosInstance } from "../../config/axiosInstance";
 
-export const fetchProductsData = async (currentPage, itemsPerPage) => {
+export const fetchProductsData = async (
+  currentPage,
+  itemsPerPage,
+  filterCategory,
+  sortBy
+) => {
+  console.log(currentPage, itemsPerPage, filterCategory, sortBy);
   const response = await adminAxiosInstance.get("/api/admin/products", {
     params: {
       page: currentPage,
       limit: itemsPerPage,
+      filter: filterCategory,
+      sort: sortBy,
     },
   });
+  return response.data;
+};
+
+export const fetchDataForAddProduct = async () => {
+  const response = await adminAxiosInstance.get(
+    "/api/admin/products-data-for-product_crud"
+  );
   return response.data;
 };
 

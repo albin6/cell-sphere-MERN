@@ -47,7 +47,7 @@ export const admin_login = AsyncHandler(async (req, res) => {
         access_token,
         admin: {
           id: admin_data.id,
-          email: admin_data.email,
+          role: admin_data.role,
         },
       });
     } else {
@@ -160,11 +160,8 @@ export const new_access_token_generate = AsyncHandler(async (req, res) => {
     const user = jwt.verify(refresh_token, process.env.JWT_REFRESH_KEY);
     console.log("User after verifying refresh token:", user);
 
-    const new_access_token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_ACCESS_KEY,
-      { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION }
-    );
+    const admin_data = { id: user.id, role: user.role };
+    const new_access_token = generateAccessToken(admin_data);
 
     console.log("New access token generated");
     return res.json({ access_token: new_access_token });

@@ -98,7 +98,7 @@ function Banner() {
                 <h1 className="text-2xl sm:text-4xl md:text-6xl font-bold mb-2 sm:mb-4 text-white">
                   {banner.heading_one}
                 </h1>
-                <h4 className="text-2xl sm:text-4xl md:text-6xl font-bold mb-2 sm:mb-4 text-white">
+                <h4 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-4 text-white">
                   {banner.heading_four}
                 </h4>
                 <p className="text-lg sm:text-xl md:text-2xl mb-4 sm:mb-8 text-white">

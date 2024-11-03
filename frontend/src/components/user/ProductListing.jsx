@@ -337,25 +337,24 @@ export default function ProductListing() {
                     <div>
                       <div className="flex items-center justify-between">
                         <span className="text-base sm:text-lg font-bold">
-                          ₹{product.price.toLocaleString()}
+                          ₹
+                          {(
+                            product.price -
+                            (product.price * product.discount) / 100
+                          ).toFixed(2)}
                         </span>
                         <div className="text-sm text-gray-600">
                           <span className="line-through">
-                            MRP: ₹
-                            {(
-                              product.price /
-                              (1 - product.discount / 100)
-                            ).toFixed(2)}
+                            MRP: ₹{product.price.toLocaleString()}
                           </span>
                         </div>
                       </div>
                       <div>
                         <span className="text-green-600 text-sm">
                           (Save ₹
-                          {(
-                            product.price / (1 - product.discount / 100) -
-                            product.price
-                          ).toFixed(2)}
+                          {((product.price * product.discount) / 100).toFixed(
+                            2
+                          )}
                           , {product.discount}% off)
                         </span>
                       </div>

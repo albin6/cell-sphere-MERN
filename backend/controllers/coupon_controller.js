@@ -86,7 +86,14 @@ export const get_coupons = AsyncHandler(async (req, res) => {
   const totalPages = Math.ceil(totalCoupons / limit);
 
   // Fetch the coupons with pagination
-  const coupons = await Coupon.find({}).skip(skip).limit(limit).exec();
+  const coupons = await Coupon.find({})
+    .populate({
+      path: "eligible_categories",
+      select: "_id title",
+    })
+    .skip(skip)
+    .limit(limit)
+    .exec();
 
   res.status(200).json({
     coupons,

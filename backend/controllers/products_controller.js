@@ -8,17 +8,50 @@ import Product from "../models/productModel.js";
 export const get_products_details = AsyncHandler(async (req, res) => {
   const { page, limit } = req.query;
   const skip = (page - 1) * limit;
+  const { sort, filter } = req.query;
+  console.log(req.query);
+  console.log(filter);
+  const category_id =
+    filter == "All"
+      ? await Category.find({})
+      : await Category.findOne({ _id: filter });
 
-  const total_product_count = await Product.countDocuments();
+  const total_product_count =
+    filter == "All"
+      ? await Product.countDocuments()
+      : await Product.countDocuments({
+          category: category_id?._id,
+        });
 
   const totalPages = Math.ceil(total_product_count / limit);
 
+  const sort_option = {};
+  switch (sort) {
+    case "name":
+      sort_option.name = 1;
+      break;
+    case "price":
+      sort_option.price = 1;
+      break;
+    default:
+      break;
+  }
+
   // Fetch all products with populated category and brand details
-  const products = await Product.find()
-    .populate("category")
-    .populate("brand")
-    .skip(skip)
-    .limit(limit);
+  const products =
+    filter == "All"
+      ? await Product.find()
+          .populate("category")
+          .populate("brand")
+          .skip(skip)
+          .limit(limit)
+          .sort(sort_option)
+      : await Product.find({ category: category_id._id })
+          .populate("category")
+          .populate("brand")
+          .skip(skip)
+          .limit(limit)
+          .sort(sort_option);
 
   // Fetch all categories
   const categories = await Category.find({ status: true });
@@ -38,7 +71,7 @@ export const get_products_details = AsyncHandler(async (req, res) => {
 
   // Check if products exist
   if (!products.length) {
-    return res.status(200).json({
+    return res.status(404).json({
       success: true,
       message: "No Products Found",
       brands,
@@ -51,6 +84,28 @@ export const get_products_details = AsyncHandler(async (req, res) => {
     .status(200)
     .json({ success: true, page, totalPages, products, brands, categories });
 });
+
+// desc => data for add product form in admin
+// GET /api/admin/get-product-data-for-addproduct
+export const get_product_data_for_product_crud = AsyncHandler(
+  async (req, res) => {
+    const categories = await Category.find({ status: true });
+    if (!categories) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch categories" });
+    }
+
+    // Fetch all brands
+    const brands = await Brand.find({ status: true });
+    if (!brands) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Failed to fetch brands" });
+    }
+    res.status(200).json({ success: true, brands, categories });
+  }
+);
 
 // desc => for users home page
 // GET /api/users/products

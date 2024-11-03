@@ -11,9 +11,9 @@ import {
 } from "../../utils/products/adminProductListing";
 import ErrorBoundary from "../errorBoundaries/ErrorBoundary";
 import NoProducctsFound from "./NoProductsFound";
-import ProductsFallbackLoading from "./ProductsFallbackLoading";
 import ConfirmationModal from "./ConfirmationModal";
 import Pagination from "../user/Pagination";
+import LoadingFallback from "../shimmer/LoadingFallback";
 
 export default function ProductListing() {
   // ===========================================================================
@@ -25,11 +25,7 @@ export default function ProductListing() {
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   // ===========================================================================
-  const { data, isError, isLoading } = useProductsData(
-    fetchProductsData,
-    currentPage,
-    itemsPerPage
-  );
+
   const { mutate: updateProductStatus } =
     useProductsDataMutation(unlistProduct);
   const navigate = useNavigate();
@@ -41,6 +37,16 @@ export default function ProductListing() {
   const [noProducts, setNoProducts] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+
+  console.log(currentPage, itemsPerPage, filterCategory, sortBy);
+
+  const { data, isError, isLoading } = useProductsData(
+    fetchProductsData,
+    currentPage,
+    itemsPerPage,
+    filterCategory,
+    sortBy
+  );
 
   useEffect(() => {
     if (data) {
@@ -61,26 +67,25 @@ export default function ProductListing() {
     navigate(`/admin/products/edit-product/${product._id}`);
   };
 
-  const filteredProducts = products
-    .filter(
-      (product) =>
-        filterCategory === "All" || product.category?.title === filterCategory
-    )
-    .sort((a, b) => {
-      if (sortBy === "name") return a.name.localeCompare(b.name);
-      if (sortBy === "price") return a.price - b.price;
-      if (sortBy === "stock")
-        return (a.variants[0]?.stock || 0) - (b.variants[0]?.stock || 0);
-      return 0;
-    });
-
   const handleConfirm = () => {
     setIsConfirmationModalOpen(false);
     updateProductStatus(orderId);
   };
 
+  if (isError) {
+    return (
+      <NoProducctsFound
+        categories={categories}
+        filterCategory={filterCategory}
+        setFilterCategory={setFilterCategory}
+        setSortBy={setSortBy}
+        sortBy={sortBy}
+      />
+    );
+  }
+
   if (isLoading) {
-    return <ProductsFallbackLoading />;
+    return <LoadingFallback />;
   }
 
   if (noProducts) {
@@ -110,7 +115,7 @@ export default function ProductListing() {
           >
             <option value="All">All Categories</option>
             {categories.map((category) => (
-              <option key={category._id} value={category.title}>
+              <option key={category._id} value={category._id}>
                 {category.title}
               </option>
             ))}
@@ -128,7 +133,6 @@ export default function ProductListing() {
           >
             <option value="name">Name</option>
             <option value="price">Price</option>
-            <option value="stock">Stock</option>
           </select>
         </div>
       </div>
@@ -149,8 +153,8 @@ export default function ProductListing() {
             </tr>
           </thead>
           <tbody>
-            {filteredProducts &&
-              filteredProducts.map((product) => (
+            {products &&
+              products.map((product) => (
                 <tr key={product._id} className="border-b hover:bg-gray-50">
                   <td className="py-2 px-4">
                     <img

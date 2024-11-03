@@ -242,6 +242,7 @@ const CouponManagement = () => {
               <th className="py-3 px-6 text-left">Discount</th>
               <th className="py-3 px-6 text-left">Valid Period</th>
               <th className="py-3 px-6 text-left">Usage Limit</th>
+              <th className="py-3 px-6 text-left">Eligible Categories</th>
               <th className="py-3 px-6 text-left">Status</th>
               <th className="py-3 px-6 text-left">Actions</th>
             </tr>
@@ -264,6 +265,12 @@ const CouponManagement = () => {
                   {`${new Date(coupon.expiration_date).toLocaleDateString()}`}
                 </td>
                 <td className="py-3 px-6 text-left">{coupon.usage_limit}</td>
+                <td className="py-3 px-6 text-left flex flex-col">
+                  {coupon.eligible_categories.map((category) => (
+                    <span key={category._id}>• {category.title}</span>
+                  ))}
+                </td>{" "}
+                {/* eligible category */}
                 <td className="py-3 px-6 text-left">
                   <span
                     className={`py-1 px-3 rounded-full text-xs ${
@@ -322,20 +329,18 @@ const CouponManagement = () => {
       </div>
 
       {/* Pagination */}
-      {
-        coupons.length > 0 &&
+      {coupons.length > 0 && (
         <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        paginate={paginate}
-      />
-      }
-      
+          currentPage={currentPage}
+          totalPages={totalPages}
+          paginate={paginate}
+        />
+      )}
 
       {/* Modal for adding/editing coupons */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center p-4"
           id="my-modal"
         >
           <div className="relative mx-auto p-5 border shadow-lg rounded-md bg-white w-full max-w-4xl">

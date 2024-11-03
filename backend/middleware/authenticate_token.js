@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-export const authenticate_user_token = (req, res, next) => {
+export const authenticate_token = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
     return res
@@ -12,7 +12,7 @@ export const authenticate_user_token = (req, res, next) => {
 
   try {
     const decode = jwt.verify(token, process.env.JWT_ACCESS_KEY);
-    console.log(decode);
+    console.log("in authenticate token middleware =>", decode);
     req.user = decode; // Attach the user data to the request
     next(); // Proceed to the next middleware or route handler
   } catch (error) {

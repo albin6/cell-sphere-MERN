@@ -211,24 +211,28 @@ export const send_otp_for_forgot_password = AsyncHandler(async (req, res) => {
 // POST /api/users/verify-otp
 export const verify_otp = AsyncHandler(async (req, res) => {
   const { otp, email } = req.body;
-  console.log(otp, email);
-  const db_data = await OTP.find({ email }).sort({ createdAt: -1 }).limit(1);
-  console.log(db_data, db_data.length);
+  const otpRecord = await OTP.find({ otp, email })
+    .sort({ createdAt: -1 })
+    .limit(1);
+  console.log(otpRecord);
+  if (!otpRecord.length)
+    return res.status(400).json({ invalid: true, message: "Invalid OTP" });
 
-  if (db_data.length != 0) {
-    console.log(otp, db_data[0].otp);
-    if (otp == db_data[0]?.otp) {
-      const user = await User.findOne({ email }).select("-password");
-      res.json({ success: true, message: "OTP verified successfully", user });
-    } else {
-      return res.status(400).json({
-        invalid: true,
-        message: "OTP is not valid",
-      });
-    }
-  } else {
+  const now = Date.now();
+  const otpAge = now - otpRecord[0].createdAt.getTime();
+
+  if (otpAge > 60 * 1000) {
+    await OTP.deleteOne({ _id: otpRecord[0]._id });
     return res.status(400).json({ expires: true, message: "OTP Expires" });
   }
+
+  await OTP.deleteOne({ _id: otpRecord[0]._id });
+  const user = await User.findOne({ email }).select("-password");
+  return res.json({
+    success: true,
+    message: "OTP verified successfully",
+    user,
+  });
 });
 
 // POST /api/users/reset-password
@@ -306,48 +310,54 @@ export const logout = AsyncHandler(async (req, res) => {
 // POST /api/users/token
 export const new_access_token_generate = AsyncHandler(async (req, res) => {
   const refresh_token = req.cookies.user_refresh_token;
-  console.log("ithaa token ==>", refresh_token);
+  console.log("Received refresh token:", refresh_token);
 
   if (!refresh_token) {
+    console.log("No refresh token provided");
     return res.status(401).json({ message: "No refresh token provided" });
   }
 
-  const stored_refresh_token = await RefreshToken.findOne({
-    token: refresh_token,
-  });
+  try {
+    const stored_refresh_token = await RefreshToken.findOne({
+      token: refresh_token,
+    });
 
-  if (stored_refresh_token) {
-    if (stored_refresh_token.expiresAt > new Date()) {
-      try {
-        const decode = jwt.verify(refresh_token, process.env.JWT_REFRESH_KEY);
-        console.log("after verifying refresh token ", decode);
+    if (!stored_refresh_token) {
+      console.log("Invalid refresh token");
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
 
-        const new_access_token = jwt.sign(
-          { id: decode.id, email: decode.email },
-          process.env.JWT_ACCESS_KEY,
-          { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRATION }
-        );
-
-        return res.json({ access_token: new_access_token });
-      } catch (error) {
-        if (error.name === "TokenExpiredError") {
-          console.log("Refresh token expired:", error.expiredAt);
-          await RefreshToken.deleteOne({ token: refresh_token });
-          return res
-            .status(403)
-            .json({ message: "Refresh token expired, please log in again." });
-        } else {
-          console.log("Token verification failed:", error);
-          return res.status(403).json({ message: "Token verification failed" });
-        }
-      }
-    } else {
+    if (stored_refresh_token.expiresAt <= new Date()) {
+      console.log("Refresh token expired");
       await RefreshToken.deleteOne({ token: refresh_token });
       return res
         .status(403)
         .json({ message: "Refresh token expired, please log in again." });
     }
-  } else {
-    return res.status(403).json({ message: "Invalid refresh token" });
+
+    const decoded = jwt.decode(refresh_token);
+    console.log("Decoded refresh token:", decoded);
+
+    // Verify the token
+    const user = jwt.verify(refresh_token, process.env.JWT_REFRESH_KEY);
+    console.log("User after verifying refresh token:", user);
+
+    const user_data = { id: user.id, role: user.role };
+    const new_access_token = generateAccessToken(user_data);
+
+    console.log("New access token generated");
+    return res.json({ access_token: new_access_token });
+  } catch (error) {
+    console.error("Error in token refresh:", error);
+    if (error.name === "TokenExpiredError") {
+      console.log("Refresh token expired:", error.expiredAt);
+      await RefreshToken.deleteOne({ token: refresh_token });
+      return res
+        .status(403)
+        .json({ message: "Refresh token expired, please log in again." });
+    } else {
+      console.log("Token verification failed:", error);
+      return res.status(403).json({ message: "Token verification failed" });
+    }
   }
 });

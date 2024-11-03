@@ -15,6 +15,7 @@ import CategoryProductCard from "./CategoryProductCard";
 import Pagination from "./Pagination";
 import FilterSection from "./FilterSection";
 import { searchContext } from "../../context/Search";
+import NoProductForTheSearch from "./NoProductForTheSearch";
 
 export default function CategoryListing() {
   const { searchTerm } = useContext(searchContext);
@@ -28,7 +29,7 @@ export default function CategoryListing() {
   const [storageExpanded, setStorageExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState("priceLowHigh");
-  const [itemsPerPage, setItemsPerPage] = useState(3);
+  const itemsPerPage = 3;
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,7 +79,7 @@ export default function CategoryListing() {
 
   useEffect(() => {
     fetchProducts(currentPage, itemsPerPage, sortBy);
-  }, [currentPage, sortBy, categoryId, filters]);
+  }, [searchTerm, currentPage, sortBy, categoryId, filters]);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -98,6 +99,11 @@ export default function CategoryListing() {
       }
       return updatedFilters;
     });
+    setCurrentPage(1);
+  };
+
+  const handleFilterReset = () => {
+    setFilters({ brand: [], os: [], ram: [], storage: [] });
     setCurrentPage(1);
   };
 
@@ -169,6 +175,12 @@ export default function CategoryListing() {
                 onChange={(value) => handleFilterChange("storage", value)}
               />
             </div>
+            <button
+              onClick={handleFilterReset}
+              className="bg-gray-800 text-white px-3 py-1 rounded mt-2"
+            >
+              Reset Filters
+            </button>
           </div>
         </aside>
 
@@ -200,16 +212,21 @@ export default function CategoryListing() {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredProducts.map((product) => (
-              <CategoryProductCard key={product._id} product={product} />
-            ))}
+            {filteredProducts.length !== 0 ? (
+              filteredProducts.map((product) => (
+                <CategoryProductCard key={product._id} product={product} />
+              ))
+            ) : (
+              <NoProductForTheSearch searchQuery={searchTerm} />
+            )}
           </div>
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            paginate={paginate}
-          />
+          {filteredProducts.length !== 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              paginate={paginate}
+            />
+          )}
         </main>
       </div>
     </div>

@@ -29,7 +29,9 @@ export const add_new_brand = AsyncHandler(async (req, res) => {
   const { name, status } = req.body;
   const logo_path = req.file && req.file.path;
 
-  const brand = await Brand.findOne({ name });
+  const brand = await Brand.findOne({
+    name: { $regex: new RegExp(`^${name}$`, "i") },
+  });
 
   if (brand) {
     return res

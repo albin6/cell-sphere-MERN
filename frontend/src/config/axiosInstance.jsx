@@ -154,7 +154,7 @@ adminAxiosInstance.interceptors.response.use(
       original_request._retry = true;
 
       try {
-        const response = await axiosInstance.post(
+        const response = await adminAxiosInstance.post(
           "/api/admin/token",
           {},
           {

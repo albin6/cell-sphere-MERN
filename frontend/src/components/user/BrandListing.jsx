@@ -15,6 +15,7 @@ import CategoryProductCard from "./CategoryProductCard";
 import FilterSection from "./FilterSection";
 import Pagination from "./Pagination";
 import { searchContext } from "../../context/Search";
+import NoProductForTheSearch from "./NoProductForTheSearch";
 
 export default function BrandListing() {
   const { searchTerm } = useContext(searchContext);
@@ -24,7 +25,7 @@ export default function BrandListing() {
   const [storageExpanded, setStorageExpanded] = useState(false);
   const [ramExpanded, setRamExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("featured");
   const itemsPerPage = 3;
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -38,6 +39,10 @@ export default function BrandListing() {
   });
 
   const toggleFilters = () => setFiltersOpen(!filtersOpen);
+
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const fetchProducts = async (currentPage, itemsPerPage, sortBy) => {
     setIsLoading(true);
@@ -71,7 +76,7 @@ export default function BrandListing() {
 
   useEffect(() => {
     fetchProducts(currentPage, itemsPerPage, sortBy);
-  }, [currentPage, sortBy, filters.storage, filters.ram, brandId]);
+  }, [searchTerm, currentPage, sortBy, filters.storage, filters.ram, brandId]);
 
   const handleFilterChange = (filterType, value) => {
     setFilters((prevFilters) => {
@@ -92,6 +97,11 @@ export default function BrandListing() {
 
   const handleSort = (e) => {
     setSortBy(e.target.value);
+  };
+
+  const handleFilterReset = () => {
+    setFilters({ ram: [], storage: [] });
+    setCurrentPage(1);
   };
 
   if (isLoading) {
@@ -146,6 +156,12 @@ export default function BrandListing() {
                 onChange={(value) => handleFilterChange("storage", value)}
               />
             </div>
+            <button
+              onClick={handleFilterReset}
+              className="bg-gray-800 text-white px-3 py-1 rounded mt-2"
+            >
+              Reset Filters
+            </button>
           </div>
         </aside>
 
@@ -175,16 +191,21 @@ export default function BrandListing() {
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {products.map((product) => (
-              <CategoryProductCard key={product._id} product={product} />
-            ))}
+            {filteredProducts.length !== 0 ? (
+              filteredProducts.map((product) => (
+                <CategoryProductCard key={product._id} product={product} />
+              ))
+            ) : (
+              <NoProductForTheSearch searchQuery={searchTerm} />
+            )}
           </div>
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            paginate={paginate}
-          />
+          {filteredProducts.length !== 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              paginate={paginate}
+            />
+          )}
         </main>
       </div>
     </div>

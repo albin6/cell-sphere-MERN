@@ -27,6 +27,18 @@ const OrderSummaryModal = ({
       console.log("totoal===>", total);
       console.log("paymentMethod===>", paymentMethod);
 
+      if (!selectedAddress) {
+        return toast.error("please choose an address", {
+          position: "top-center",
+        });
+      }
+
+      if (!paymentMethod) {
+        return toast.error("please choose a payment method", {
+          position: "top-center",
+        });
+      }
+
       const totalProductsPrice = cart.items.reduce(
         (acc, curr) => acc + curr.price,
         0
