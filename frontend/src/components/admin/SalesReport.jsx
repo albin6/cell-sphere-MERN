@@ -175,9 +175,7 @@ const SalesReport = () => {
                     key={sale._id}
                     className={index % 2 === 0 ? "bg-gray-50" : ""}
                   >
-                    <td className="border p-2">
-                      {sale.customer.first_name + " " + sale.customer.last_name}
-                    </td>
+                    <td className="border p-2">{sale?.customer_name}</td>
                     <td className="border p-2">
                       {new Date(sale.orderDate).toLocaleDateString()}
                     </td>

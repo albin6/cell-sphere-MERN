@@ -42,6 +42,7 @@ const createSalesReport = async (orderId) => {
     // Create a single sales report entry for the order
     const reportEntry = {
       orderId: order._id,
+      customer_name: order.user.first_name + " " + order.user.last_name,
       product: products,
       finalAmount: finalAmount,
       orderDate: order.placed_at,

@@ -40,7 +40,7 @@ export const google_authentication = AsyncHandler(async (req, res) => {
     });
 
     const user_data = {
-      _id: new_user._id,
+      id: new_user._id,
       role: "user",
     };
 
@@ -69,7 +69,7 @@ export const google_authentication = AsyncHandler(async (req, res) => {
   } else {
     if (!user.is_blocked) {
       const user_data = {
-        _id: user._id,
+        id: user._id,
         role: "user",
       };
       const access_token = generateAccessToken(user_data);

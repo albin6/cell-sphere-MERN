@@ -60,6 +60,7 @@ export default function Signup() {
         toast.success(response.data.message, { position: "top-center" });
       }
     } catch (error) {
+      setOtpSpinnerOpen(false);
       toast.error(error.response.data.message, { position: "top-center" });
       console.log(error);
     }
@@ -94,6 +95,7 @@ export default function Signup() {
       setIsOTPModalOpen(true);
       toast.success(response.data.message);
     } catch (error) {
+      setOtpSpinnerOpen(false);
       toast.error(error.response.data.message, { position: "top-center" });
       console.log(error);
     }

@@ -18,7 +18,9 @@ export const get_cart_products = AsyncHandler(async (req, res) => {
   console.log(cart_data);
 
   if (!cart_data) {
-    return res.status(404).json({ success: false, message: "Cart not found" });
+    const cart_data = await Cart.create({ user: user_id });
+    console.log(cart_data);
+    return res.status(200).json({ success: true, cart_data });
   }
 
   res.status(200).json({ success: true, cart_data });

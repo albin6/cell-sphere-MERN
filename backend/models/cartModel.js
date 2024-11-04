@@ -11,38 +11,33 @@ const cartSchema = new mongoose.Schema({
       product: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product",
-        required: true,
       },
       variant: {
         type: String,
-        required: true, // it store the sku
       },
       quantity: {
         type: Number,
-        required: true,
         min: [1, "Quantity must be at least 1"],
         default: 1,
       },
       price: {
         type: Number,
-        required: true,
+        default: 0,
         min: [0, "Price cannot be negative"],
       },
       discount: {
         type: Number,
-        required: true,
         min: [0, "Discount cannot be negative"],
         max: [100, "Discount cannot exceed 100%"],
       },
       totalPrice: {
         type: Number,
-        required: true,
+        default: 0,
       },
     },
   ],
   totalAmount: {
     type: Number,
-    required: true,
     default: 0,
   },
   isActive: {

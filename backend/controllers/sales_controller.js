@@ -9,8 +9,6 @@ const getSalesReportData = async (startDate, endDate, period) => {
   if (period === "custom" && startDate && endDate) {
     const start = new Date(startDate).setHours(0, 0, 0, 0);
     const end = new Date(endDate).setHours(23, 59, 59, 999);
-    // const start = new Date(startDate);
-    // const end = new Date(endDate);
     dateFilter = { orderDate: { $gte: new Date(start), $lte: new Date(end) } };
     console.log("Custom date range filter:", dateFilter);
   }
@@ -41,7 +39,6 @@ const getSalesReportData = async (startDate, endDate, period) => {
   return await SalesReport.find(dateFilter);
 };
 
-// Define the sales report generation and export functions
 export const get_sales_report = AsyncHandler(async (req, res) => {
   console.log(req.query);
   const { startDate = null, endDate = null, period = "daily" } = req.query;
@@ -121,10 +118,8 @@ export const download_sales_report_pdf = AsyncHandler(async (req, res) => {
   res.setHeader("Content-Disposition", "attachment; filename=sales_report.pdf");
   pdfDoc.pipe(res);
 
-  // Title
   pdfDoc.fontSize(20).text("Sales Report", { align: "center" }).moveDown(2);
 
-  // Loop through each report and display the data
   reports.forEach((report, index) => {
     pdfDoc.fontSize(12);
     pdfDoc.text(
@@ -154,14 +149,15 @@ export const download_sales_report_pdf = AsyncHandler(async (req, res) => {
     pdfDoc.text(
       `Order Date: ${new Date(report.orderDate).toLocaleDateString()}`
     );
-    pdfDoc.text(`Customer: ${report.customer}`); // You may need to replace this with customer name
+    pdfDoc.text(`Customer ID: ${report.customer}`);
+    pdfDoc.text(`Customer Name: ${report.customer_name}`);
     pdfDoc.text(`Payment Method: ${report.paymentMethod}`);
     pdfDoc.text(`Delivery Status: ${report.deliveryStatus}`);
     pdfDoc.text(
       `==================================================================`
     );
 
-    pdfDoc.moveDown(); // Add space between reports
+    pdfDoc.moveDown();
   });
 
   pdfDoc.end();
@@ -184,7 +180,8 @@ export const download_sales_report_xl = AsyncHandler(async (req, res) => {
     { header: "Coupon Deduction", key: "couponDeduction", width: 15 },
     { header: "Final Amount", key: "finalAmount", width: 15 },
     { header: "Order Date", key: "orderDate", width: 20 },
-    { header: "Customer", key: "customer", width: 20 }, // You might want to use customer name or ID
+    { header: "Customer", key: "customer", width: 20 },
+    { header: "Customer Name", key: "customer_name", width: 20 },
     { header: "Payment Method", key: "paymentMethod", width: 20 },
     { header: "Delivery Status", key: "deliveryStatus", width: 15 },
   ];
@@ -208,8 +205,9 @@ export const download_sales_report_xl = AsyncHandler(async (req, res) => {
         discount: product.discount,
         couponDeduction: product.couponDeduction,
         finalAmount: report.finalAmount,
-        orderDate: report.orderDate.toLocaleDateString(), // Format if needed
-        customer: report.customer, // Assuming you have the customer name or ID here
+        orderDate: report.orderDate.toLocaleDateString(),
+        customer: report.customer,
+        customer_name: report.customer_name,
         paymentMethod: report.paymentMethod,
         deliveryStatus: report.deliveryStatus,
       });

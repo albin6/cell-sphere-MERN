@@ -54,6 +54,10 @@ const sales_report_schema = new mongoose.Schema({
     ref: "user",
     required: true,
   },
+  customer_name: {
+    type: String,
+    required: true,
+  },
   paymentMethod: {
     type: String,
     enum: [
