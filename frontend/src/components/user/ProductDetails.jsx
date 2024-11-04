@@ -182,17 +182,11 @@ function ProductDetails() {
     });
   };
 
-  const sourceRef = useRef(null);
-  const targetRef = useRef(null);
-  const cursorRef = useRef(null);
+  const sourceRef = React.useRef(null);
+  const targetRef = React.useRef(null);
+  const cursorRef = React.useRef(null);
 
-  // Use the zoom hook
-  const { isActive, zoomBounds } = useMouseOverZoom(
-    sourceRef,
-    targetRef,
-    cursorRef,
-    80
-  );
+  const { isActive } = useMouseOverZoom(sourceRef, targetRef, cursorRef);
 
   useEffect(() => {
     // Ensure the canvas is the right size
@@ -284,8 +278,8 @@ function ProductDetails() {
       </nav>
       <canvas
         ref={targetRef}
-        width="200"
-        height="500"
+        width="400"
+        height="400"
         className="absolute bg-white pointer-events-none bottom-full translate-y-1/2 left-3/4 md:-translate-y-3/4 md:translate-x-0 md:bottom-16 md:left-1/2 border-8 w-2/5 h-96 z-10"
         style={{
           display: isActive ? "block" : "none",
@@ -303,6 +297,15 @@ function ProductDetails() {
                   }`}
                   alt={product.name}
                   className="w-full h-full object-cover"
+                />
+
+                <div
+                  ref={cursorRef}
+                  className="absolute pointer-events-none border-2 border-white rounded-full"
+                  style={{
+                    display: isActive ? "block" : "none",
+                    transform: "translate(-50%, -50%)",
+                  }}
                 />
 
                 <Button

@@ -84,12 +84,14 @@ export default function Signup() {
   };
 
   const resendOTPHandle = async () => {
+    setIsOTPModalOpen(false);
     setOtpSpinnerOpen(true);
     try {
       const response = await axiosInstance.post("/api/users/send-otp", {
         email: form_data.email,
       });
       setOtpSpinnerOpen(false);
+      setIsOTPModalOpen(true);
       toast.success(response.data.message);
     } catch (error) {
       toast.error(error.response.data.message, { position: "top-center" });

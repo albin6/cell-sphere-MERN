@@ -32,9 +32,9 @@ export const OTPModal = ({ isOpen, closeModal, onSubmit, onResendOTP }) => {
   };
 
   const handleResendOTP = () => {
+    onResendOTP(); // trigger OTP resend logic
     setOtp(["", "", "", "", "", ""]);
     setTimeLeft(60); // reset the timer to 60 seconds
-    onResendOTP(); // trigger OTP resend logic
   };
 
   return (

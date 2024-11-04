@@ -18,7 +18,7 @@ export const get_all_offers = AsyncHandler(async (req, res) => {
 export const add_new_offer = AsyncHandler(async (req, res) => {
   console.log("In add_new_offer");
 
-  const { name, type, value, target, targetId, targetName, endDate } = req.body;
+  const { name, value, target, targetId, targetName, endDate } = req.body;
 
   if (target === "product") {
     const product = await Product.findById(targetId);
@@ -41,7 +41,6 @@ export const add_new_offer = AsyncHandler(async (req, res) => {
   // Create a new offer
   const new_offer = await Offer.create({
     name,
-    offer_type: type,
     offer_value: value,
     target_type: target,
     target_id: targetId,

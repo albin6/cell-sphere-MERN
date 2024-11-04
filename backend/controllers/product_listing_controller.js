@@ -99,9 +99,9 @@ export const get_products_of_category = AsyncHandler(async (req, res) => {
   const products = await Product.find(filter)
     .populate("category")
     .populate("brand")
+    .sort(sortOption)
     .skip(skip)
-    .limit(limit)
-    .sort(sortOption);
+    .limit(limit);
 
   const categories = await Category.find();
   if (!categories || categories.length === 0) {
@@ -208,9 +208,9 @@ export const get_products_of_brand = AsyncHandler(async (req, res) => {
   const products = await Product.find(filter)
     .populate("category")
     .populate("brand")
+    .sort(sortOptions)
     .skip(skip)
-    .limit(limit)
-    .sort(sortOptions);
+    .limit(limit);
 
   const [categories, brands] = await Promise.all([
     Category.find(),

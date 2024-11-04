@@ -179,7 +179,7 @@ export default function OfferModule() {
           {activeTab === "product" ? "products" : "categories"}
         </p>
         <form onSubmit={handleAddOffer} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4">
             <div className="space-y-2">
               <label
                 htmlFor="name"
@@ -195,24 +195,6 @@ export default function OfferModule() {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
               />
-            </div>
-            <div className="space-y-2">
-              <label
-                htmlFor="type"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Offer Type
-              </label>
-              <select
-                id="type"
-                name="type"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
-              >
-                <option value="">Select offer type</option>
-                <option value="percentage">Percentage</option>
-                <option value="fixed">Fixed Amount</option>
-              </select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -232,21 +214,6 @@ export default function OfferModule() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
               />
             </div>
-            {/* <div className="space-y-2">
-              <label
-                htmlFor="startDate"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Start Date
-              </label>
-              <input
-                id="startDate"
-                name="startDate"
-                type="date"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
-              />
-            </div> */}
             <div className="space-y-2">
               <label
                 htmlFor="endDate"

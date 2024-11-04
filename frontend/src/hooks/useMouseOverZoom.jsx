@@ -1,94 +1,115 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 export const useMouseOverZoom = (
   sourceRef,
   targetRef,
   cursorRef,
-  radius = 25
+  zoomLevel = 2
 ) => {
-  const [state, setState] = useState({ x: 0, y: 0, isActive: false });
+  const [isActive, setIsActive] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  useEffect(() => {
-    const el = sourceRef.current;
+  const handleMouseEnter = () => setIsActive(true);
+  const handleMouseLeave = () => setIsActive(false);
 
-    if (!el) return;
+  const handleMouseMove = useCallback(
+    (e) => {
+      const source = sourceRef.current;
+      if (!source) return;
 
-    const handleMouseMove = (e) => {
-      const rect = el.getBoundingClientRect();
-      setState({
+      const rect = source.getBoundingClientRect();
+      setMousePosition({
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
-        isActive: true,
       });
+    },
+    [sourceRef]
+  );
+
+  const updateZoom = useCallback(() => {
+    const source = sourceRef.current;
+    const target = targetRef.current;
+    const cursor = cursorRef.current;
+    if (!source || !target || !cursor || !imageLoaded) return;
+
+    const ctx = target.getContext("2d");
+    if (!ctx) return;
+
+    const { x, y } = mousePosition;
+    const scaleX = source.naturalWidth / source.width;
+    const scaleY = source.naturalHeight / source.height;
+
+    const zoomWidth = target.width / zoomLevel;
+    const zoomHeight = target.height / zoomLevel;
+
+    const sourceX = Math.max(
+      0,
+      Math.min(x * scaleX - zoomWidth / 2, source.naturalWidth - zoomWidth)
+    );
+    const sourceY = Math.max(
+      0,
+      Math.min(y * scaleY - zoomHeight / 2, source.naturalHeight - zoomHeight)
+    );
+
+    ctx.drawImage(
+      source,
+      sourceX,
+      sourceY,
+      zoomWidth,
+      zoomHeight,
+      0,
+      0,
+      target.width,
+      target.height
+    );
+
+    cursor.style.left = `${x}px`;
+    cursor.style.top = `${y}px`;
+    cursor.style.width = `${zoomWidth / scaleX}px`;
+    cursor.style.height = `${zoomHeight / scaleY}px`;
+    cursor.style.display = isActive ? "block" : "none";
+  }, [
+    sourceRef,
+    targetRef,
+    cursorRef,
+    mousePosition,
+    isActive,
+    imageLoaded,
+    zoomLevel,
+  ]);
+
+  useEffect(() => {
+    const source = sourceRef.current;
+    if (!source) return;
+
+    const handleLoad = () => {
+      setImageLoaded(true);
     };
 
-    const handleMouseLeave = () => {
-      setState((prev) => ({ ...prev, isActive: false }));
-    };
+    if (source.complete) {
+      setImageLoaded(true);
+    } else {
+      source.addEventListener("load", handleLoad);
+    }
 
-    el.addEventListener("mousemove", handleMouseMove);
-    el.addEventListener("mouseleave", handleMouseLeave);
+    source.addEventListener("mouseenter", handleMouseEnter);
+    source.addEventListener("mouseleave", handleMouseLeave);
+    source.addEventListener("mousemove", handleMouseMove);
 
     return () => {
-      el.removeEventListener("mousemove", handleMouseMove);
-      el.removeEventListener("mouseleave", handleMouseLeave);
+      source.removeEventListener("load", handleLoad);
+      source.removeEventListener("mouseenter", handleMouseEnter);
+      source.removeEventListener("mouseleave", handleMouseLeave);
+      source.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [sourceRef]);
-
-  const { x, y, isActive } = state;
-
-  const zoomBounds = useMemo(() => {
-    return {
-      left: x - radius,
-      top: y - radius,
-      width: radius * 3,
-      height: radius * 3,
-    };
-  }, [x, y, radius]);
+  }, [sourceRef, handleMouseEnter, handleMouseLeave, handleMouseMove]);
 
   useEffect(() => {
-    if (cursorRef.current) {
-      const { left, top, width, height } = zoomBounds;
-      cursorRef.current.style.left = `${left}px`;
-      cursorRef.current.style.top = `${top}px`;
-      cursorRef.current.style.width = `${width}px`;
-      cursorRef.current.style.height = `${height}px`;
-      cursorRef.current.style.display = isActive ? "block" : "none";
+    if (isActive && imageLoaded) {
+      updateZoom();
     }
-  }, [zoomBounds, isActive]);
+  }, [isActive, imageLoaded, mousePosition, updateZoom]);
 
-  useEffect(() => {
-    if (sourceRef.current && targetRef.current) {
-      const ctx = targetRef.current.getContext("2d");
-      const img = sourceRef.current;
-
-      if (ctx && img.complete) {
-        // Check if the image is fully loaded
-        if (isActive) {
-          const { left, top, width, height } = zoomBounds;
-          const imageRatio = img.naturalWidth / img.width;
-          ctx.drawImage(
-            img,
-            left * imageRatio,
-            top * imageRatio,
-            width * imageRatio,
-            height * imageRatio,
-            0,
-            0,
-            targetRef.current.width,
-            targetRef.current.height
-          );
-        } else {
-          ctx.clearRect(
-            0,
-            0,
-            targetRef.current.width,
-            targetRef.current.height
-          );
-        }
-      }
-    }
-  }, [zoomBounds, isActive, sourceRef, targetRef]);
-
-  return { ...state, zoomBounds };
+  return { isActive };
 };
