@@ -61,10 +61,27 @@ export const delete_offer = AsyncHandler(async (req, res) => {
 
   const { offerId } = req.body;
 
+  const current_offer = await Offer.findById(offerId);
+
   const offer = await Offer.deleteOne({ _id: offerId });
 
   if (!offer) {
     return res.status(404).json({ success: false, message: "Offer not found" });
+  }
+
+  if (current_offer.target_type == "product") {
+    const product_data = await Product.findByIdAndUpdate(
+      current_offer.target_id,
+      { discount: 0 },
+      { new: true }
+    );
+  }
+
+  if (current_offer.target_type == "category") {
+    const products_data = await Product.updateMany(
+      { category: current_offer.target_id },
+      { $set: { discount: 0 } }
+    );
   }
 
   res.status(200).json({ success: true, message: "Offer deleted" });
