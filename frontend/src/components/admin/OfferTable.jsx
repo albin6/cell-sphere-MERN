@@ -68,9 +68,6 @@ function OfferTable({ productOrCategory, offers, onDelete }) {
                     : `₹${offer.offer_value}`}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(offer.start_date).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(offer.end_date).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

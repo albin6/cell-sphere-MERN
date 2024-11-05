@@ -117,6 +117,12 @@ const CouponManagement = () => {
 
     if (!formData.discount_value) {
       newErrors.discount_value = "Discount value is required";
+    } else if (
+      parseFloat(formData.discount_value) > 100 &&
+      formData.discount_type == "percentage"
+    ) {
+      newErrors.discount_value =
+        "Discount value for percentage type should be less than 100";
     } else if (parseFloat(formData.discount_value) <= 0) {
       newErrors.discount_value = "Discount value must be positive";
     }
