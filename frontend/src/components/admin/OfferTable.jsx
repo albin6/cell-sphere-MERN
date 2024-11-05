@@ -21,12 +21,6 @@ function OfferTable({ productOrCategory, offers, onDelete }) {
               scope="col"
               className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Type
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-            >
               Applied {productOrCategory}
             </th>
             <th
@@ -57,15 +51,10 @@ function OfferTable({ productOrCategory, offers, onDelete }) {
                   {offer.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {offer.offer_type}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {offer.target_name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {offer.offer_type === "percentage"
-                    ? `${offer.offer_value}%`
-                    : `₹${offer.offer_value}`}
+                  {offer.offer_value}%
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(offer.end_date).toLocaleDateString()}

@@ -69,16 +69,6 @@ export const get_products_details = AsyncHandler(async (req, res) => {
       .json({ success: false, message: "Failed to fetch brands" });
   }
 
-  // Check if products exist
-  if (!products.length) {
-    return res.status(404).json({
-      success: true,
-      message: "No Products Found",
-      brands,
-      categories,
-    });
-  }
-
   // If everything is successful, return the data
   res
     .status(200)

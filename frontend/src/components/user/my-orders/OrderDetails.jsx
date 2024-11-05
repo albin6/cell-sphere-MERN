@@ -7,6 +7,8 @@ import {
   useOrderDetailsMutation,
 } from "../../../hooks/CustomHooks";
 import { cancelOrder, getOrderDetails } from "../../../utils/order/orderCRUD";
+import { FileDown, Loader2 } from "lucide-react";
+import { axiosInstance } from "../../../config/axiosInstance";
 
 const OrderDetails = ({ orderId: propsOrderId }) => {
   const naviagate = useNavigate();
@@ -21,6 +23,7 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
 
   const [userName, setUserName] = useState("");
   const [order, setOrder] = useState(null);
+  const [generatingInvoice, setGeneratingInvoice] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderDetails, setOrderDetails] = useState({});
@@ -46,6 +49,45 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
     // Logic to cancel the order
     console.log("Order cancelled");
     setIsModalOpen(false);
+  };
+
+  const generateInvoice = async (orderId) => {
+    console.log(orderId);
+    setGeneratingInvoice(orderId);
+    try {
+      const response = await axiosInstance.get(
+        `/api/users/orders/${orderId}/invoice`,
+        {
+          responseType: "blob",
+        }
+      );
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `invoice-${orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success(
+        {
+          title: "Success",
+          description: "Invoice generated successfully.",
+        },
+        { position: "top-center" }
+      );
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      toast.error(
+        {
+          title: "Error",
+          description: "Failed to generate invoice. Please try again.",
+          variant: "destructive",
+        },
+        { position: "top-center" }
+      );
+    }
+    setGeneratingInvoice(null);
   };
 
   useEffect(() => {
@@ -131,8 +173,17 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
             <p className="text-gray-600 text-sm mb-2 sm:mb-0">
               Order# {orderId} | Delivery By {order && order.deliveryBy}
             </p>
-            <button className="text-blue-600 hover:text-blue-800 text-sm">
-              Invoice
+            <button
+              onClick={() => generateInvoice(orderId)}
+              disabled={generatingInvoice === orderId}
+              className="px-3 py-1 text-sm border flex justify-center items-center border-gray-300 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors duration-200"
+            >
+              {generatingInvoice === orderId ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4 mr-2" />
+              )}
+              {generatingInvoice === orderId ? "Generating..." : "Invoice"}
             </button>
           </div>
 

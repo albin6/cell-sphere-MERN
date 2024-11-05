@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { cancelOrder } from "../../../utils/order/orderCRUD";
 import { useOrderDetailsMutation } from "../../../hooks/CustomHooks";
+import { axiosInstance } from "../../../config/axiosInstance";
+import { FileDown, Loader2 } from "lucide-react";
 
 export default function OrderCard({ order }) {
   const navigate = useNavigate();
@@ -11,6 +13,47 @@ export default function OrderCard({ order }) {
   const { mutate: cancel_order } = useOrderDetailsMutation(cancelOrder);
 
   const [sku, setSku] = useState(null);
+
+  const [generatingInvoice, setGeneratingInvoice] = useState(null);
+
+  const generateInvoice = async (orderId) => {
+    console.log(orderId);
+    setGeneratingInvoice(orderId);
+    try {
+      const response = await axiosInstance.get(
+        `/api/users/orders/${orderId}/invoice`,
+        {
+          responseType: "blob",
+        }
+      );
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `invoice-${orderId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success(
+        {
+          title: "Success",
+          description: "Invoice generated successfully.",
+        },
+        { position: "top-center" }
+      );
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      toast.error(
+        {
+          title: "Error",
+          description: "Failed to generate invoice. Please try again.",
+          variant: "destructive",
+        },
+        { position: "top-center" }
+      );
+    }
+    setGeneratingInvoice(null);
+  };
 
   const handleCancelClick = () => {
     setShowCancelModal(true);
@@ -137,8 +180,19 @@ export default function OrderCard({ order }) {
                       Cancel
                     </button>
                   )}
-                  <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors duration-200">
-                    Invoice
+                  <button
+                    onClick={() => generateInvoice(order.id)}
+                    disabled={generatingInvoice === order.id}
+                    className="px-3 py-1 text-sm border flex justify-center items-center border-gray-300 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors duration-200"
+                  >
+                    {generatingInvoice === order.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileDown className="h-4 w-4 mr-2" />
+                    )}
+                    {generatingInvoice === order.id
+                      ? "Generating..."
+                      : "Invoice"}
                   </button>
                 </div>
               </div>

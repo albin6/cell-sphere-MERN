@@ -29,6 +29,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import CropperModalEdit from "../imageCropper/CropperModalEdit";
+import ConfirmationModal from "./ConfirmationModal";
 
 export default function EditProductForm() {
   const navigate = useNavigate();
@@ -40,6 +41,9 @@ export default function EditProductForm() {
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [product, setProduct] = useState(null);
+  const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
+  const [imageIdx, setImageIndex] = useState(null);
+  const [variantIdx, setVariantIndex] = useState(null);
 
   const {
     register,
@@ -507,9 +511,11 @@ export default function EditProductForm() {
                             />
                             <button
                               type="button"
-                              onClick={() =>
-                                removeImage(variantIndex, imageIndex)
-                              }
+                              onClick={() => {
+                                setVariantIndex(variantIndex);
+                                setImageIndex(imageIndex);
+                                setConfirmationModalOpen(true);
+                              }}
                               className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
                             >
                               <X className="w-4 h-4" />
@@ -691,6 +697,17 @@ export default function EditProductForm() {
           </form>
         </CardContent>
       </Card>
+
+      {confirmationModalOpen && (
+        <ConfirmationModal
+          isOpen={confirmationModalOpen}
+          onClose={() => setConfirmationModalOpen(false)}
+          onConfirm={() => {
+            setConfirmationModalOpen(false);
+            removeImage(variantIdx, imageIdx);
+          }}
+        />
+      )}
 
       {cropModalOpen && (
         <CropperModalEdit

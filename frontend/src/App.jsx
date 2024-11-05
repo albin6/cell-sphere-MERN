@@ -39,6 +39,7 @@ import OfferModulePage from "./pages/admin/OfferModulePage";
 import SalesReportPage from "./pages/admin/SalesReportPage";
 import BannerManagementPage from "./pages/admin/BannerManagementPage";
 import Chat from "./services/Chat";
+import ReferralCode from "./components/user/ReferralCode";
 
 function AppLayout() {
   const admin = useSelector((state) => state.admin.adminInfo);
@@ -47,6 +48,14 @@ function AppLayout() {
       {/* --------------------------------------------------- */}
       {/* --------------------  users     ------------------- */}
       {/* --------------------------------------------------- */}
+      <Route
+        path="/referral"
+        element={
+          <RequireAuthentication>
+            <ReferralCode />
+          </RequireAuthentication>
+        }
+      />
       <Route path="/" element={<Homepage />} />
       <Route
         path="/login"

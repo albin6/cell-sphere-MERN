@@ -114,13 +114,11 @@ export default function Signup() {
 
       if (response?.data?.success) {
         dispatch(setUserDetails(response.data?.new_user));
-        navigate("/");
       }
     } catch (error) {
       toast.error(error.response.data.message, { position: "top-center" });
       console.log(error);
     }
-    // Add your signup logic here
   };
 
   return (

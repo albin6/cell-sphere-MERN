@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { PlusCircle, Trash2, Search } from "lucide-react";
+import { PlusCircle, Trash2, Search, PlusIcon } from "lucide-react";
 import OfferTable from "./OfferTable";
 import { debounce } from "lodash";
 import {
@@ -31,6 +31,7 @@ export default function OfferModule() {
   const [offers, setOffers] = useState([]);
 
   const [categories, setCategories] = useState([]);
+  const [addOfferFormModal, setAddOfferFormModal] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -87,6 +88,7 @@ export default function OfferModule() {
   }, [searchTerm, debouncedFetchProducts]);
 
   const handleAddOffer = (event) => {
+    setAddOfferFormModal(false);
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     console.log(formData.get("category"));
@@ -150,6 +152,15 @@ export default function OfferModule() {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Offer Management</h1>
+      <button
+        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+        onClick={() => {
+          setAddOfferFormModal(true);
+        }}
+      >
+        <PlusIcon className="h-5 w-5 inline-block mr-2" />
+        Add New Coupon
+      </button>
       <div className="flex border-b border-gray-200">
         <button
           className={`py-2 px-4 font-semibold ${
@@ -172,120 +183,141 @@ export default function OfferModule() {
           Category Offers
         </button>
       </div>
-      <div className="bg-white shadow rounded-lg p-6 mt-6">
-        <h2 className="text-xl font-semibold mb-2">Add New Offer</h2>
-        <p className="text-gray-600 mb-4">
-          Create a new offer for{" "}
-          {activeTab === "product" ? "products" : "categories"}
-        </p>
-        <form onSubmit={handleAddOffer} className="space-y-4">
-          <div className="grid gap-4">
-            <div className="space-y-2">
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Offer Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Enter offer name"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label
-                htmlFor="value"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Offer Value
-              </label>
-              <input
-                id="value"
-                name="value"
-                type="number"
-                placeholder="Enter value"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <label
-                htmlFor="endDate"
-                className="block text-sm font-medium text-gray-700"
-              >
-                End Date
-              </label>
-              <input
-                id="endDate"
-                name="endDate"
-                type="date"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label
-              htmlFor={activeTab}
-              className="block text-sm font-medium text-gray-700"
-            >
-              {activeTab === "product" ? "Select Product" : "Select Category"}
-            </label>
-            {activeTab === "product" ? (
-              <div className="relative">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={handleSearchInputChange}
-                  placeholder="Search for a product"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
-                />
-                <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
-                {showResults && searchResults && searchResults.length > 0 && (
-                  <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                    {searchResults.map((product) => (
-                      <li
-                        key={product._id}
-                        className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleProductSelect(product)}
-                      >
-                        {product.name}
-                      </li>
+
+      {addOfferFormModal && (
+        <div
+          className="fixed inset-0 z-50 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center p-4"
+          id="my-modal"
+        >
+          <div className="bg-white shadow rounded-lg p-6 mt-6">
+            <h2 className="text-xl font-semibold mb-2">Add New Offer</h2>
+            <p className="text-gray-600 mb-4">
+              Create a new offer for{" "}
+              {activeTab === "product" ? "products" : "categories"}
+            </p>
+            <form onSubmit={handleAddOffer} className="space-y-4">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Offer Name
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Enter offer name"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label
+                    htmlFor="value"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Offer Value
+                  </label>
+                  <input
+                    id="value"
+                    name="value"
+                    type="number"
+                    placeholder="Enter value"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label
+                    htmlFor="endDate"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    End Date
+                  </label>
+                  <input
+                    id="endDate"
+                    name="endDate"
+                    type="date"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor={activeTab}
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  {activeTab === "product"
+                    ? "Select Product"
+                    : "Select Category"}
+                </label>
+                {activeTab === "product" ? (
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={handleSearchInputChange}
+                      placeholder="Search for a product"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                    />
+                    <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                    {showResults &&
+                      searchResults &&
+                      searchResults.length > 0 && (
+                        <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {searchResults.map((product) => (
+                            <li
+                              key={product._id}
+                              className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                              onClick={() => handleProductSelect(product)}
+                            >
+                              {product.name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                  </div>
+                ) : (
+                  <select
+                    id="category"
+                    name="category"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.title}
+                      </option>
                     ))}
-                  </ul>
+                  </select>
                 )}
               </div>
-            ) : (
-              <select
-                id="category"
-                name="category"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-gray-500 focus:border-gray-500"
+              <button
+                type="submit"
+                className="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                disabled={activeTab === "product" && !selectedProduct}
               >
-                <option value="">Select a category</option>
-                {categories.map((category) => (
-                  <option key={category._id} value={category._id}>
-                    {category.title}
-                  </option>
-                ))}
-              </select>
-            )}
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Offer
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAddOfferFormModal(false);
+                }}
+                className="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                Cancel
+              </button>
+            </form>
           </div>
-          <button
-            type="submit"
-            className="w-full flex justify-center items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            disabled={activeTab === "product" && !selectedProduct}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Offer
-          </button>
-        </form>
-      </div>
+        </div>
+      )}
 
       <div className="mb-6">
         <div className="mt-4">

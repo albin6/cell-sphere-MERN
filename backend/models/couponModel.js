@@ -6,7 +6,7 @@ const coupon_schema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    uppercase: true, // Ensure that coupon codes are always uppercase
+    uppercase: true,
   },
   description: {
     type: String,
@@ -14,7 +14,7 @@ const coupon_schema = new mongoose.Schema({
   discount_type: {
     type: String,
     required: true,
-    enum: ["percentage", "fixed"], // 'percentage' for percentage discount and 'fixed' for a fixed amount
+    enum: ["percentage", "fixed"],
   },
   discount_value: {
     type: Number,
@@ -37,7 +37,7 @@ const coupon_schema = new mongoose.Schema({
   },
   usage_limit: {
     type: Number,
-    default: null, // Null means unlimited usage
+    default: null,
     min: [1, "Usage limit must be at least 1 if specified"],
   },
   users_applied: [
@@ -60,7 +60,7 @@ const coupon_schema = new mongoose.Schema({
   eligible_categories: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "categorie", // Reference to eligible categories (if applicable)
+      ref: "categorie",
     },
   ],
   createdAt: {

@@ -175,6 +175,10 @@ export default function CheckoutPage() {
     setAppliedCoupon(null);
   };
 
+  const final = productId
+    ? Number(amountAfterApplyingCoupon) || Number(total)
+    : Number(amountAfterApplyingCoupon) || Number(cart?.totalAmount);
+
   if (isLoading) {
     return <h3>Loading...</h3>;
   }
@@ -261,16 +265,39 @@ export default function CheckoutPage() {
           {["Wallet", "Paypal", "UPI", "Cash on Delivery"].map(
             (method, index) => (
               <div key={index} className="flex items-center mb-4">
-                <input
-                  type="radio"
-                  id={`payment-${index}`}
-                  name="payment"
-                  value={method}
-                  checked={paymentMethod === method}
-                  onChange={() => setPaymentMethod(method)}
-                  className="mr-2"
-                />
-                <label htmlFor={`payment-${index}`}>{method}</label>
+                {method == "Cash on Delivery" && final > 15000 ? (
+                  <>
+                    <input
+                      type="radio"
+                      id={`payment-${index}`}
+                      name="payment"
+                      value={method}
+                      checked={paymentMethod === method}
+                      onChange={() => setPaymentMethod(method)}
+                      className="mr-2"
+                      disabled={true}
+                    />
+                    <label
+                      htmlFor={`payment-${index}`}
+                      className="line-through"
+                    >
+                      {method}
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="radio"
+                      id={`payment-${index}`}
+                      name="payment"
+                      value={method}
+                      checked={paymentMethod === method}
+                      onChange={() => setPaymentMethod(method)}
+                      className="mr-2"
+                    />
+                    <label htmlFor={`payment-${index}`}>{method}</label>{" "}
+                  </>
+                )}
               </div>
             )
           )}

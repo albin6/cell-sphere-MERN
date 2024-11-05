@@ -6,7 +6,7 @@ function Pagination({ currentPage, totalPages, paginate }) {
       <nav className="inline-flex rounded-md shadow">
         <button
           onClick={() => paginate(currentPage - 1)}
-          disabled={currentPage === 1}
+          disabled={currentPage == 1}
           className="px-2 sm:px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="sr-only">Previous</span>
@@ -31,8 +31,8 @@ function Pagination({ currentPage, totalPages, paginate }) {
           {currentPage} / {totalPages}
         </span>
         <button
-          onClick={() => paginate(currentPage + 1)}
-          disabled={currentPage === totalPages}
+          onClick={() => paginate(Number(currentPage) + 1)}
+          disabled={currentPage == totalPages}
           className="px-2 sm:px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="sr-only">Next</span>

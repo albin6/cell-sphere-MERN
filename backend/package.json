@@ -15,6 +15,7 @@
     "@aws-sdk/client-s3": "^3.665.0",
     "@google/generative-ai": "^0.21.0",
     "@paypal/checkout-server-sdk": "^1.0.3",
+    "@types/pdfkit": "^0.13.5",
     "bcrypt": "^5.1.1",
     "chalk": "^5.3.0",
     "cookie-parser": "^1.4.6",
@@ -35,7 +36,9 @@
     "otp-generator": "^4.0.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "pdfkit": "^0.15.0",
+    "pdfkit": "^0.15.1",
+    "pdfkit-table": "^0.1.99",
+    "pdfmake": "^0.2.15",
     "prompt-sync": "^4.2.0",
     "uuid": "^10.0.0",
     "validator": "^13.12.0"

@@ -66,6 +66,8 @@ import {
 import { check_role } from "../middleware/RBAC/check_role.js";
 import { get_all_active_banners } from "../controllers/banner_controller.js";
 import { handle_chat } from "../services/gemini_ai.js";
+import { verify_referral_code } from "../controllers/referral_controller.js";
+import { generate_order_invoice } from "../controllers/sales_controller.js";
 const user_router = express.Router();
 
 user_router.post("/signup", register);
@@ -77,6 +79,15 @@ user_router.post("/reset-password", reset_password);
 user_router.post("/logout", logout);
 user_router.get("/get-products-details", get_all_products_details);
 user_router.get("/banner", get_all_active_banners);
+
+// ----------------------------------------------------
+
+user_router.post(
+  "/verify-referral",
+  authenticate_token,
+  check_role(["user"]),
+  verify_referral_code
+);
 
 // ----------------------------------------------------
 user_router.get(
@@ -237,6 +248,16 @@ user_router
   .route("/orders/:orderId")
   .get(authenticate_token, check_role(["user"]), get_specific_order_details)
   .patch(authenticate_token, check_role(["user"]), cancel_order);
+
+// ---------------------------------------------------
+// ---------------------------------------------------
+
+user_router.get(
+  "/orders/:orderId/invoice",
+  authenticate_token,
+  check_role(["user"]),
+  generate_order_invoice
+);
 
 // ---------------------------------------------------
 // ---------------------------------------------------

@@ -207,11 +207,13 @@ export default function ProductListing() {
               ))}
           </tbody>
         </table>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          paginate={paginate}
-        />
+        {products.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            paginate={paginate}
+          />
+        )}
         {isConfirmationModalOpen && (
           <ConfirmationModal
             isOpen={isConfirmationModalOpen}
