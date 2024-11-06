@@ -11,6 +11,8 @@ import { fetchProductsDetails } from "../../utils/products/userProductListing";
 import ErrorBoundary from "../errorBoundaries/ErrorBoundary";
 import Error from "../Error";
 import Shimmer from "../ui/HomeShimmer";
+import ReferralCode from "./ReferralCode";
+import { axiosInstance } from "../../config/axiosInstance";
 
 function Home() {
   const navigate = useNavigate();
@@ -20,6 +22,25 @@ function Home() {
   const [categories, setCategories] = useState(null);
   const [brands, setBrands] = useState(null);
   const [banners, setBanners] = useState([]);
+
+  // referral modal show
+  const [showModal, setShowModal] = useState(false);
+
+  const hasSeenReferral = async () => {
+    try {
+      const response = await axiosInstance.get("/api/users/referral");
+      console.log("referral status =>", response.data);
+      if (!response.data.has_seen) {
+        setShowModal(true);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    hasSeenReferral();
+  }, []);
 
   useEffect(() => {
     try {
@@ -43,6 +64,7 @@ function Home() {
 
   return (
     <ErrorBoundary>
+      <ReferralCode isOpen={showModal} onClose={() => setShowModal(false)} />
       <div className="min-h-screen w-full bg-white text-gray-800">
         <Banner />
 

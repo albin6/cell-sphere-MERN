@@ -61,6 +61,7 @@ import {
   get_banners,
   update_banner_status,
 } from "../controllers/banner_controller.js";
+import { get_best_selling } from "../controllers/best_selling_controller.js";
 const admin_router = express.Router();
 
 // admin login / logout
@@ -215,6 +216,17 @@ admin_router
   .post(authenticate_token, check_role(["admin"]), add_new_banner)
   .delete(authenticate_token, check_role(["admin"]), delete_banner)
   .patch(authenticate_token, check_role(["admin"]), update_banner_status);
+
+// ==============================================================================
+
+admin_router.get(
+  "/best-selling",
+  authenticate_token,
+  check_role(["admin"]),
+  get_best_selling
+);
+
+// ==============================================================================
 
 // -------------------------------------------------------
 // -------------------------------------------------------

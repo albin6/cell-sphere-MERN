@@ -7,21 +7,24 @@ import { axiosInstance } from "../../../config/axiosInstance";
 import { toast } from "react-toastify";
 import Wallet from "./Wallet";
 import Coupon from "./Coupon";
+import Referral from "./Referral";
 
 const UserDetails = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [userName, setUserName] = useState("");
+  const [referralCode, setReferralCode] = useState(null);
 
   useEffect(() => {
     axiosInstance
       .get("/api/users/profile")
-      .then((response) =>
+      .then((response) => {
         setUserName(
           response.data.user_data.first_name +
             " " +
             response.data.user_data.last_name
-        )
-      )
+        );
+        setReferralCode(response.data.user_data.referral_code);
+      })
       .catch((error) => console.log(error));
   });
 
@@ -67,6 +70,9 @@ const UserDetails = () => {
             {activeTab === "orders" && <Orders />}
             {activeTab === "wallet" && <Wallet />}
             {activeTab === "coupon" && <Coupon />}
+            {activeTab === "referral" && (
+              <Referral referralCode={referralCode} />
+            )}
           </main>
         </div>
       </div>

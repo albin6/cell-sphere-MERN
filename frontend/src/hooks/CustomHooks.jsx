@@ -289,10 +289,10 @@ export const useDirectCheckoutProduct = ({ variant, productId }) => {
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 // for getting offers applied on products
-export const useProductOffers = () => {
+export const useProductOffers = (currentPage, itemsPerPage) => {
   return useQuery({
-    queryKey: ["offers"],
-    queryFn: getOffers,
+    queryKey: ["offers", currentPage, itemsPerPage],
+    queryFn: () => getOffers(currentPage, itemsPerPage),
   });
 };
 

@@ -7,10 +7,18 @@ import Product from "../models/productModel.js";
 export const get_all_offers = AsyncHandler(async (req, res) => {
   console.log("In get_all_offers");
 
-  // Fetch all offers from the database
-  const offers = await Offer.find({});
+  const { page, limit } = req.query;
 
-  res.status(200).json({ offers });
+  const skip = (page - 1) * limit;
+
+  // Fetch all offers from the database
+  const offers = await Offer.find({}).skip(skip).limit(limit);
+
+  const offers_count = await Offer.countDocuments();
+
+  const totalPages = Math.ceil(offers_count / limit);
+
+  res.status(200).json({ offers, currentPage: page, totalPages });
 });
 
 // @desc for adding a new offer

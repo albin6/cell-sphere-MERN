@@ -82,6 +82,18 @@ const ProfileSidebar = ({ activeTab, setActiveTab }) => {
               Coupons
             </button>
           </li>
+          <li>
+            <button
+              onClick={() => setActiveTab("referral")}
+              className={`w-full text-left py-2 px-4 rounded ${
+                activeTab === "referral"
+                  ? "text-gray-600 bg-blue-100"
+                  : "hover:bg-gray-200"
+              }`}
+            >
+              Referral
+            </button>
+          </li>
         </ul>
       </nav>
 

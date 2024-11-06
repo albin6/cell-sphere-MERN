@@ -13,8 +13,13 @@ import { toast } from "react-toastify";
 
 export default function OfferModule() {
   const [term, setTerm] = useState("");
+  const itemsPerPage = 7;
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
   // =======================================================
-  const { data: activeOffers } = useProductOffers();
+  const { data: activeOffers } = useProductOffers(currentPage, itemsPerPage);
   const { data: categoriesForOffers, refetch: refetchCategories } =
     useCategoriesForOffers();
   const {
@@ -40,7 +45,9 @@ export default function OfferModule() {
 
   useEffect(() => {
     if (activeOffers) {
-      setOffers(activeOffers);
+      setOffers(activeOffers?.offers);
+      setCurrentPage(activeOffers?.currentPage);
+      setTotalPages(activeOffers?.totalPages);
       console.log("offers set ==> ", activeOffers);
     }
     if (categoriesForOffers) {
@@ -153,7 +160,7 @@ export default function OfferModule() {
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Offer Management</h1>
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+        className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4"
         onClick={() => {
           setAddOfferFormModal(true);
         }}
@@ -334,6 +341,9 @@ export default function OfferModule() {
                   offers.filter((offer) => offer.target_type === "product")
                 }
                 onDelete={handleDeleteOffer}
+                currentPage={currentPage}
+                totalPage={totalPages}
+                paginate={paginate}
               />
             </div>
           )}
@@ -349,6 +359,9 @@ export default function OfferModule() {
                   (offer) => offer.target_type === "category"
                 )}
                 onDelete={handleDeleteOffer}
+                currentPage={currentPage}
+                totalPage={totalPages}
+                paginate={paginate}
               />
             </div>
           )}

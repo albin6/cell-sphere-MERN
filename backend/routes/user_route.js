@@ -66,7 +66,11 @@ import {
 import { check_role } from "../middleware/RBAC/check_role.js";
 import { get_all_active_banners } from "../controllers/banner_controller.js";
 import { handle_chat } from "../services/gemini_ai.js";
-import { verify_referral_code } from "../controllers/referral_controller.js";
+import {
+  change_status,
+  get_referral_details,
+  verify_referral_code,
+} from "../controllers/referral_controller.js";
 import { generate_order_invoice } from "../controllers/sales_controller.js";
 const user_router = express.Router();
 
@@ -81,6 +85,11 @@ user_router.get("/get-products-details", get_all_products_details);
 user_router.get("/banner", get_all_active_banners);
 
 // ----------------------------------------------------
+
+user_router
+  .route("/referral")
+  .get(authenticate_token, check_role(["user"]), get_referral_details)
+  .patch(authenticate_token, check_role(["user"]), change_status);
 
 user_router.post(
   "/verify-referral",

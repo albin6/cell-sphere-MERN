@@ -36,6 +36,10 @@ const product_schema = new mongoose.Schema({
     min: [0, "Discount cannot be negative"],
     max: [100, "Discount cannot exceed 100%"],
   },
+  quantity_sold: {
+    type: Number,
+    default: 0,
+  },
   variants: [
     {
       color: {

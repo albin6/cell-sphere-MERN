@@ -229,7 +229,7 @@ const CouponManagement = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-4">Coupon Management</h1>
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+        className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mb-4"
         onClick={() => {
           setEditingCoupon(null);
           setIsModalOpen(true);
@@ -564,7 +564,7 @@ const CouponManagement = () => {
                 <div className="col-span-1 md:col-span-2 flex items-center justify-end space-x-2 mt-4">
                   <button
                     type="submit"
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                   >
                     {editingCoupon ? "Update Coupon" : "Add Coupon"}
                   </button>
@@ -575,7 +575,7 @@ const CouponManagement = () => {
                       setEditingCoupon(null);
                       resetForm();
                     }}
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    className="border bottom-4 hover:bg-gray-300 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                   >
                     Cancel
                   </button>

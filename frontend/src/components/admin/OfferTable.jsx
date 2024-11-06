@@ -1,8 +1,16 @@
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import ConfirmationModal from "./ConfirmationModal";
+import Pagination from "../user/Pagination";
 
-function OfferTable({ productOrCategory, offers, onDelete }) {
+function OfferTable({
+  productOrCategory,
+  offers,
+  onDelete,
+  currentPage,
+  totalPages,
+  paginate,
+}) {
   const [offerId, setOfferId] = useState(null);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
 
@@ -74,6 +82,13 @@ function OfferTable({ productOrCategory, offers, onDelete }) {
             ))}
         </tbody>
       </table>
+      {offers.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          paginate={paginate}
+        />
+      )}
       {isConfirmationModalOpen && (
         <ConfirmationModal
           onClose={() => setIsConfirmationModalOpen(false)}

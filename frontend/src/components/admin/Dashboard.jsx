@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useDashboard } from "../../hooks/CustomHooks";
 import Loading from "./Loading";
+import DashboardChart from "./DashboardChart";
 
 const salesData = [
   { name: "Jan", sales: 0 },
@@ -103,44 +104,7 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Sales Growth</h2>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#9CA3AF" }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#9CA3AF" }}
-                    tickFormatter={(value) => `${value}`}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      background: "#F3F4F6",
-                      border: "none",
-                      borderRadius: "0.375rem",
-                    }}
-                    itemStyle={{ color: "#111827" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="sales"
-                    stroke="#3B82F6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3B82F6", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+          <DashboardChart />
         </main>
       </div>
     </div>

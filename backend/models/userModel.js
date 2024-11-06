@@ -35,11 +35,33 @@ const user_schema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  has_seen: {
+    type: Boolean,
+    default: false,
+  },
   role: {
     type: String,
     default: "user",
   },
+  referral_code: {
+    type: String,
+    default: generateReferralCode,
+  },
 });
+
+function generateReferralCode() {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let randomPart = "";
+
+  for (let i = 0; i < 5; i++) {
+    randomPart += characters.charAt(
+      Math.floor(Math.random() * characters.length)
+    );
+  }
+
+  return `${timestamp}${randomPart}`;
+}
 
 const User = mongoose.model("user", user_schema);
 

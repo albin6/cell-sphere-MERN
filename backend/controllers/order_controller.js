@@ -112,7 +112,11 @@ export const place_order = AsyncHandler(async (req, res) => {
     // Loop through each order item to update the stock
     for (const item of order_data.order_items) {
       const { product, variant, quantity } = item;
-
+      await Product.findByIdAndUpdate(
+        product,
+        { $inc: { quantity_sold: quantity } },
+        { new: true, runValidators: true }
+      );
       // Find the product by ID
       const product_data = await Product.findById(product);
 
@@ -311,7 +315,11 @@ export const cancel_order = AsyncHandler(async (req, res) => {
 
   if (productData) {
     const variantData = productData.variants.find((v) => v.sku === sku);
-
+    await Product.findByIdAndUpdate(
+      product,
+      { $inc: { quantity_sold: quantity * -1 } },
+      { new: true, runValidators: true }
+    );
     if (variantData) {
       variantData.stock += quantity;
       await productData.save();

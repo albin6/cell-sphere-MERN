@@ -1,8 +1,13 @@
 import { adminAxiosInstance } from "../../config/axiosInstance";
 
-export const getOffers = async () => {
-  const response = await adminAxiosInstance.get("/api/admin/offers");
-  return response.data.offers;
+export const getOffers = async (page, limit) => {
+  const response = await adminAxiosInstance.get("/api/admin/offers", {
+    params: {
+      page,
+      limit,
+    },
+  });
+  return response.data;
 };
 
 // for adding an offer
