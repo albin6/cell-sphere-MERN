@@ -54,7 +54,10 @@ import {
   download_sales_report_xl,
   get_sales_report,
 } from "../controllers/sales_controller.js";
-import { get_dashboard_data } from "../controllers/chart_controller.js";
+import {
+  get_chart_data,
+  get_dashboard_data,
+} from "../controllers/chart_controller.js";
 import {
   add_new_banner,
   delete_banner,
@@ -224,6 +227,13 @@ admin_router.get(
   authenticate_token,
   check_role(["admin"]),
   get_best_selling
+);
+
+admin_router.get(
+  "/chart-data",
+  authenticate_token,
+  check_role(["admin"]),
+  get_chart_data
 );
 
 // ==============================================================================

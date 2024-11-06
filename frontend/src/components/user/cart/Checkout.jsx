@@ -53,7 +53,8 @@ export default function CheckoutPage() {
   const [eligibleProducts, setEligibleProducts] = useState(null);
 
   const [isCouponApplied, setIsCouponApplied] = useState(false);
-  const [amountAfterApplyingCoupon, setAmountAfterApplyingCoupon] = useState(0);
+  const [amountAfterApplyingCoupon, setAmountAfterApplyingCoupon] =
+    useState(null);
   const [discountAfterApplyingCoupon, setDiscountAfterApplyingCoupon] =
     useState(0);
 
@@ -171,7 +172,7 @@ export default function CheckoutPage() {
     setIsCouponApplied(false);
     setEligibleProducts([]);
     setDiscountAfterApplyingCoupon(0);
-    setAmountAfterApplyingCoupon(0);
+    setAmountAfterApplyingCoupon(null);
     setAppliedCoupon(null);
   };
 

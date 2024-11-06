@@ -30,3 +30,62 @@ export const get_dashboard_data = AsyncHandler(async (req, res) => {
 
   res.json(dashboard_data);
 });
+
+// for getting data for chart
+// /api/admin/chart-data
+export const get_chart_data = async (req, res) => {
+  try {
+    const { viewMode } = req.query;
+    const currentDate = new Date();
+    let startDate;
+
+    if (viewMode === "yearly") {
+      startDate = new Date(
+        currentDate.getFullYear() - 1,
+        currentDate.getMonth(),
+        1
+      );
+    } else {
+      // Default to monthly view
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - 11,
+        1
+      );
+    }
+
+    const aggregationPipeline = [
+      {
+        $match: {
+          placed_at: { $gte: startDate },
+          payment_status: "Paid", // Only consider paid orders
+        },
+      },
+      {
+        $group: {
+          _id:
+            viewMode === "yearly"
+              ? { $year: "$placed_at" }
+              : { $dateToString: { format: "%Y-%m", date: "$placed_at" } },
+          sales: { $sum: "$total_price_with_discount" },
+          customers: { $addToSet: "$user" },
+        },
+      },
+      {
+        $project: {
+          date: "$_id",
+          sales: 1,
+          customers: { $size: "$customers" },
+        },
+      },
+      { $sort: { date: 1 } },
+    ];
+
+    const chartData = await Order.aggregate(aggregationPipeline);
+
+    res.json({ success: true, data: chartData });
+  } catch (error) {
+    console.error("Error fetching chart data:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};

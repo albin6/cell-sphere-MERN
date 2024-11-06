@@ -1,111 +1,81 @@
 import AsyncHandler from "express-async-handler";
+import Order from "../models/orderModel.js";
+import Product from "../models/productModel.js";
 
 export const get_best_selling = AsyncHandler(async (req, res) => {
   console.log("in get best selling");
+  const limit = 10;
 
   const [best_selling_products, best_selling_categories, best_selling_brands] =
     await Promise.all([
-      Order.aggregate([
-        { $unwind: "$order_items" }, // Flatten the order_items array
-        {
-          $group: {
-            _id: "$order_items.product", // Group by product ID
-            totalSold: { $sum: "$order_items.quantity" }, // Sum the quantities sold
-          },
-        },
-        {
-          $lookup: {
-            from: "products", // Name of the product collection
-            localField: "_id",
-            foreignField: "_id",
-            as: "productDetails",
-          },
-        },
-        { $unwind: "$productDetails" }, // Flatten product details
-        {
-          $project: {
-            _id: "$productDetails._id",
-            name: "$productDetails.name",
-            brand: "$productDetails.brand",
-            totalSold: 1,
-          },
-        },
-        { $sort: { totalSold: -1 } }, // Sort by total sold
-        { $limit: limit }, // Limit to top N
+      // Best Selling Products
+      Product.aggregate([
+        { $match: { is_active: true } }, // Only active products
+        { $sort: { quantity_sold: -1 } }, // Sort by quantity sold in descending order
+        { $project: { name: 1, quantity_sold: 1 } }, // Only keep name and quantity_sold
+        { $limit: limit }, // Limit to top N products
       ]),
 
-      Order.aggregate([
-        { $unwind: "$order_items" }, // Flatten the order_items array
-        {
-          $lookup: {
-            from: "products", // Name of the product collection
-            localField: "order_items.product",
-            foreignField: "_id",
-            as: "productDetails",
-          },
-        },
-        { $unwind: "$productDetails" }, // Flatten product details
+      Product.aggregate([
+        { $match: { is_active: true } },
         {
           $group: {
-            _id: "$productDetails.category", // Group by product category
-            totalSold: { $sum: "$order_items.quantity" }, // Sum the quantities sold
+            _id: "$category",
+            totalSold: { $sum: { $toInt: "$quantity_sold" } }, // Convert to integer
           },
         },
+        { $sort: { totalSold: -1 } },
+        { $limit: limit },
         {
           $lookup: {
-            from: "categories", // Name of the category collection
+            from: "categories", // Ensure the collection name matches
             localField: "_id",
             foreignField: "_id",
             as: "categoryDetails",
           },
         },
-        { $unwind: "$categoryDetails" }, // Flatten category details
+        {
+          $unwind: {
+            path: "$categoryDetails",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
         {
           $project: {
-            _id: "$categoryDetails._id",
-            name: "$categoryDetails.name",
+            name: "$categoryDetails.title",
             totalSold: 1,
           },
         },
-        { $sort: { totalSold: -1 } }, // Sort by total sold
-        { $limit: limit }, // Limit to top N
       ]),
 
-      Order.aggregate([
-        { $unwind: "$order_items" }, // Flatten the order_items array
-        {
-          $lookup: {
-            from: "products", // Name of the product collection
-            localField: "order_items.product",
-            foreignField: "_id",
-            as: "productDetails",
-          },
-        },
-        { $unwind: "$productDetails" }, // Flatten product details
+      // Best Selling Brands
+      Product.aggregate([
+        { $match: { is_active: true } },
         {
           $group: {
-            _id: "$productDetails.brand", // Group by product brand
-            totalSold: { $sum: "$order_items.quantity" }, // Sum the quantities sold
+            _id: "$brand",
+            totalSold: { $sum: { $toInt: "$quantity_sold" } }, // Convert to integer
           },
         },
+        { $sort: { totalSold: -1 } },
+        { $limit: limit },
         {
           $lookup: {
-            from: "brands", // Name of the brand collection
+            from: "brands", // Ensure the collection name matches
             localField: "_id",
             foreignField: "_id",
             as: "brandDetails",
           },
         },
-        { $unwind: "$brandDetails" }, // Flatten brand details
+        {
+          $unwind: { path: "$brandDetails", preserveNullAndEmptyArrays: true },
+        },
         {
           $project: {
-            _id: "$brandDetails._id",
             name: "$brandDetails.name",
             totalSold: 1,
           },
         },
-        { $sort: { totalSold: -1 } }, // Sort by total sold
-        { $limit: limit }, // Limit to top N
       ]),
     ]);
 
@@ -114,4 +84,10 @@ export const get_best_selling = AsyncHandler(async (req, res) => {
   console.log(best_selling_categories);
   console.log("=======================================");
   console.log(best_selling_brands);
+
+  res.json({
+    products: best_selling_products,
+    categories: best_selling_categories,
+    brands: best_selling_brands,
+  });
 });
