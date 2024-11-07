@@ -34,6 +34,7 @@ Each part of the application is organized to maximize modularity, scalability, a
 - **TanStack Query (React Query)**: For efficient server-state management and data fetching on the frontend.
 - **Redux Toolkit**: Simplifies state management for complex applications.
 - **React Toastify**: For customizable toast notifications.
+- **Cloudinary**: Optimized image storage, management, and delivery with transformation options.
 - **Multer**: For handling image uploads.
 - **Formik & Yup**: For robust form validation and handling.
 
