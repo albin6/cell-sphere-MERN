@@ -67,13 +67,13 @@ function OfferTable({
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {new Date(offer.end_date).toLocaleDateString()}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-start">
                   <button
                     onClick={() => {
                       setIsConfirmationModalOpen(true);
                       setOfferId(offer._id);
                     }}
-                    className="text-red-600 hover:text-red-900 focus:outline-none focus:underline"
+                    className="text-red-600 hover:text-red-900 focus:outline-none focus:underline text-center"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

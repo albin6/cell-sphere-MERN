@@ -166,7 +166,7 @@ export default function OfferModule() {
         }}
       >
         <PlusIcon className="h-5 w-5 inline-block mr-2" />
-        Add New Coupon
+        Add New Offer
       </button>
       <div className="flex border-b border-gray-200">
         <button
