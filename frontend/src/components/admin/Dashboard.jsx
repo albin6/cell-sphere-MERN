@@ -21,6 +21,7 @@ import {
 import { useDashboard } from "../../hooks/CustomHooks";
 import Loading from "./Loading";
 import DashboardChart from "./DashboardChart";
+import BestSelling from "./BestSelling";
 
 const salesData = [
   { name: "Jan", sales: 0 },
@@ -105,6 +106,7 @@ export default function Dashboard() {
           </div>
 
           <DashboardChart />
+          <BestSelling />
         </main>
       </div>
     </div>

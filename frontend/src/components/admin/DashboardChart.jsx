@@ -1,213 +1,197 @@
-"use client";
-
 import React, { useState, useEffect } from "react";
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  ResponsiveContainer,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
 } from "recharts";
+import { adminAxiosInstance } from "../../config/axiosInstance";
 
-const DashboardChart = () => {
+export default function TwoLineChart() {
+  const [selectedYear, setSelectedYear] = useState(
+    new Date().getFullYear().toString()
+  );
+  const [selectedMonth, setSelectedMonth] = useState("all");
   const [chartData, setChartData] = useState([]);
-  const [chartType, setChartType] = useState("area");
-  const [viewMode, setViewMode] = useState("monthly");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const [bestSellingProducts, setBestSellingProducts] = useState([]);
-  const [bestSellingCategories, setBestSellingCategories] = useState([]);
-  const [bestSellingBrands, setBestSellingBrands] = useState([]);
+  const [totals, setTotals] = useState({
+    sales: 0,
+    revenue: 0,
+    customers: 0,
+    orders: 0,
+  });
+  const [availableYears, setAvailableYears] = useState([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [chartResponse, bestSellingResponse] = await Promise.all([
-          fetch(`/api/admin/chart-data?viewMode=${viewMode}`),
-          fetch("/api/admin/best-selling"),
-        ]);
+    fetchChartData();
+  }, [selectedYear, selectedMonth]);
 
-        if (!chartResponse.ok || !bestSellingResponse.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const chartData = await chartResponse.json();
-        const bestSellingData = await bestSellingResponse.json();
-
-        setChartData(chartData.data);
-        setBestSellingProducts(bestSellingData.products);
-        setBestSellingCategories(bestSellingData.categories);
-        setBestSellingBrands(bestSellingData.brands);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        setError(
-          "An error occurred while fetching data. Please try again later."
-        );
-        setLoading(false);
+  const fetchChartData = async () => {
+    try {
+      const response = await adminAxiosInstance.get("/api/admin/chart-data", {
+        params: {
+          year: selectedYear,
+          month: selectedMonth !== "all" ? selectedMonth : undefined,
+        },
+      });
+      setChartData(response.data.overview);
+      setTotals(response.data.totals);
+      if (availableYears.length === 0) {
+        const years = [
+          ...new Set(
+            response.data.overview.map((item) => item.name.split("-")[0])
+          ),
+        ];
+        setAvailableYears(years.sort((a, b) => b - a));
       }
-    };
-
-    fetchData();
-  }, [viewMode]);
-
-  if (loading) return <div className="text-center py-4">Loading...</div>;
-  if (error)
-    return <div className="text-center py-4 text-red-500">{error}</div>;
-
-  const renderChart = () => {
-    const ChartComponent = chartType === "area" ? AreaChart : BarChart;
-    const DataComponent = chartType === "area" ? Area : Bar;
-
-    return (
-      <div className="h-[400px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <ChartComponent data={chartData}>
-            <XAxis dataKey="date" />
-            <YAxis yAxisId="left" />
-            <YAxis yAxisId="right" orientation="right" />
-            <Tooltip
-              content={({ active, payload, label }) => {
-                if (active && payload && payload.length) {
-                  return (
-                    <div className="bg-white p-4 border border-gray-200 shadow-md rounded-md">
-                      <p className="text-sm font-semibold">{label}</p>
-                      {payload.map((entry, index) => (
-                        <p
-                          key={index}
-                          className="text-sm"
-                          style={{ color: entry.color }}
-                        >
-                          {`${entry.name}: ${entry.value}`}
-                        </p>
-                      ))}
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <DataComponent
-              type="monotone"
-              dataKey="sales"
-              yAxisId="left"
-              stroke="#8884d8"
-              fill="#8884d8"
-              fillOpacity={0.2}
-            />
-            <DataComponent
-              type="monotone"
-              dataKey="customers"
-              yAxisId="right"
-              stroke="#82ca9d"
-              fill="#82ca9d"
-              fillOpacity={0.2}
-            />
-          </ChartComponent>
-        </ResponsiveContainer>
-      </div>
-    );
+    } catch (error) {
+      console.error("Error fetching chart data:", error);
+    }
   };
 
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
   return (
-    <div className="space-y-4">
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold">Sales and Customer Overview</h2>
-          <p className="text-gray-600">Track your sales and customer growth</p>
-        </div>
-        <div className="flex justify-between items-center mb-4">
+    <div className="w-full my-16 bg-white rounded-lg shadow-md p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-800">
+          Revenue vs Customers
+        </h2>
+        <div className="flex space-x-4">
           <select
-            value={chartType}
-            onChange={(e) => setChartType(e.target.value)}
-            className="p-2 border rounded-md bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border rounded p-2 text-sm"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
           >
-            <option value="area">Area Chart</option>
-            <option value="bar">Bar Chart</option>
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
           </select>
-          <div className="space-x-2">
-            <button
-              onClick={() => setViewMode("monthly")}
-              className={`px-4 py-2 rounded-md ${
-                viewMode === "monthly"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setViewMode("yearly")}
-              className={`px-4 py-2 rounded-md ${
-                viewMode === "yearly"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              Yearly
-            </button>
+          <select
+            className="border rounded p-2 text-sm"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+          >
+            <option value="all">All Months</option>
+            {monthNames.map((month, index) => (
+              <option
+                key={month}
+                value={(index + 1).toString().padStart(2, "0")}
+              >
+                {month}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="h-64 mb-8">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
+            <XAxis dataKey="name" className="text-xs text-gray-600" />
+            <YAxis className="text-xs text-gray-600" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "white",
+                border: "1px solid #e2e8f0",
+              }}
+            />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="revenue"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+            />
+            <Line
+              type="monotone"
+              dataKey="customers"
+              stroke="#f59e0b"
+              strokeWidth={2}
+              dot={{ r: 4 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <p className="text-sm font-medium text-gray-600">Total Sales</p>
+          <p className="text-2xl font-bold text-gray-800">
+            ₹ {totals?.sales.toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+          <p className="text-2xl font-bold text-gray-800">
+            ₹ {totals.revenue.toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <p className="text-sm font-medium text-gray-600">Total Customers</p>
+          <p className="text-2xl font-bold text-gray-800">
+            {totals.customers.toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <p className="text-sm font-medium text-gray-600">Total Orders</p>
+          <p className="text-2xl font-bold text-gray-800">
+            {totals.orders.toLocaleString()}
+          </p>
+        </div>
+      </div>
+      {selectedMonth !== "all" && chartData.length > 0 && (
+        <div>
+          <h3 className="text-md font-semibold text-gray-800 mb-4">
+            Monthly Overview: {monthNames[parseInt(selectedMonth) - 1]}{" "}
+            {selectedYear}
+          </h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-gray-200"
+                />
+                <XAxis dataKey="name" className="text-xs text-gray-600" />
+                <YAxis className="text-xs text-gray-600" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "white",
+                    border: "1px solid #e2e8f0",
+                  }}
+                />
+                <Legend />
+                <Bar dataKey="sales" fill="#3b82f6" name="Sales" />
+                <Bar dataKey="customers" fill="#f59e0b" name="Customers" />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
-        {renderChart()}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold mb-4">Best Selling Products</h3>
-          <ul className="space-y-2">
-            {bestSellingProducts.map((product) => (
-              <li
-                key={product._id}
-                className="flex justify-between items-center"
-              >
-                <span className="text-sm font-medium">{product.name}</span>
-                <span className="text-sm font-semibold">
-                  {product.quantity_sold} units
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold mb-4">
-            Best Selling Categories
-          </h3>
-          <ul className="space-y-2">
-            {bestSellingCategories.map((category) => (
-              <li
-                key={category._id}
-                className="flex justify-between items-center"
-              >
-                <span className="text-sm font-medium">{category.name}</span>
-                <span className="text-sm font-semibold">
-                  {category.totalSold} units
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold mb-4">Best Selling Brands</h3>
-          <ul className="space-y-2">
-            {bestSellingBrands.map((brand) => (
-              <li key={brand._id} className="flex justify-between items-center">
-                <span className="text-sm font-medium">{brand.name}</span>
-                <span className="text-sm font-semibold">
-                  {brand.totalSold} units
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      )}
     </div>
   );
-};
-
-export default DashboardChart;
+}

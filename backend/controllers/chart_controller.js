@@ -33,59 +33,129 @@ export const get_dashboard_data = AsyncHandler(async (req, res) => {
 
 // for getting data for chart
 // /api/admin/chart-data
-export const get_chart_data = async (req, res) => {
-  try {
-    const { viewMode } = req.query;
-    const currentDate = new Date();
-    let startDate;
 
-    if (viewMode === "yearly") {
-      startDate = new Date(
-        currentDate.getFullYear() - 1,
-        currentDate.getMonth(),
-        1
-      );
-    } else {
-      // Default to monthly view
-      startDate = new Date(
-        currentDate.getFullYear(),
-        currentDate.getMonth() - 11,
-        1
-      );
+export const get_chart_data = AsyncHandler(async (req, res) => {
+  try {
+    const { year, month } = req.query;
+
+    // Validate year and month
+    const currentYear = new Date().getFullYear();
+    if (year && (isNaN(year) || year < 2000 || year > currentYear)) {
+      return res.status(400).json({ message: "Invalid year" });
+    }
+    if (month && (isNaN(month) || month < 1 || month > 12)) {
+      return res.status(400).json({ message: "Invalid month" });
     }
 
-    const aggregationPipeline = [
+    // Set up date range for filtering
+    let startDate, endDate;
+    if (year && month) {
+      startDate = new Date(year, month - 1, 1);
+      endDate = new Date(year, month, 0);
+    } else if (year) {
+      startDate = new Date(year, 0, 1);
+      endDate = new Date(year, 11, 31);
+    } else {
+      // Default to current year if no year is specified
+      const currentYear = new Date().getFullYear();
+      startDate = new Date(currentYear, 0, 1);
+      endDate = new Date(currentYear, 11, 31);
+    }
+
+    // Aggregate pipeline for orders
+    const orderPipeline = [
       {
         $match: {
-          placed_at: { $gte: startDate },
-          payment_status: "Paid", // Only consider paid orders
+          placed_at: { $gte: startDate, $lte: endDate },
+          "order_items.order_status": { $ne: "Cancelled" },
         },
       },
       {
         $group: {
-          _id:
-            viewMode === "yearly"
-              ? { $year: "$placed_at" }
-              : { $dateToString: { format: "%Y-%m", date: "$placed_at" } },
+          _id: { $dateToString: { format: "%Y-%m", date: "$placed_at" } },
           sales: { $sum: "$total_price_with_discount" },
-          customers: { $addToSet: "$user" },
+          revenue: { $sum: "$total_amount" },
+          orderCount: { $sum: 1 },
         },
       },
       {
         $project: {
-          date: "$_id",
-          sales: 1,
-          customers: { $size: "$customers" },
+          _id: 0,
+          name: "$_id",
+          sales: { $round: ["$sales", 2] },
+          revenue: { $round: ["$revenue", 2] },
+          orderCount: 1,
         },
       },
-      { $sort: { date: 1 } },
+      { $sort: { name: 1 } },
     ];
 
-    const chartData = await Order.aggregate(aggregationPipeline);
+    // Aggregate pipeline for users
+    const userPipeline = [
+      {
+        $match: {
+          created_on: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$created_on" } },
+          customers: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          customers: 1,
+        },
+      },
+      { $sort: { name: 1 } },
+    ];
 
-    res.json({ success: true, data: chartData });
+    const [orderResults, userResults, sales] = await Promise.all([
+      Order.aggregate(orderPipeline),
+      User.aggregate(userPipeline),
+      SalesReport.aggregate([
+        {
+          $match: {
+            orderDate: { $gte: startDate, $lte: endDate },
+          },
+        },
+        { $group: { _id: null, sum: { $sum: "$finalAmount" } } },
+      ]),
+    ]);
+
+    // Merge order and user results
+    const mergedResults = orderResults.map((orderData) => {
+      const userData = userResults.find((u) => u.name === orderData.name) || {
+        customers: 0,
+      };
+      return { ...orderData, customers: userData.customers };
+    });
+
+    // Calculate totals
+    const totals = mergedResults.reduce(
+      (acc, curr) => {
+        acc.totalRevenue += curr.revenue;
+        acc.totalCustomers += curr.customers;
+        acc.totalOrders += curr.orderCount;
+        return acc;
+      },
+      { totalRevenue: 0, totalCustomers: 0, totalOrders: 0 }
+    );
+
+    res.json({
+      overview: mergedResults,
+      totals: {
+        sales: Number(sales[0]?.sum.toFixed(2)) || 0,
+        revenue: Number(totals.totalRevenue.toFixed(2)),
+        customers: totals.totalCustomers,
+        orders: totals.totalOrders,
+      },
+    });
   } catch (error) {
-    console.error("Error fetching chart data:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    console.error("Error in get_chart_data:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
-};
+});

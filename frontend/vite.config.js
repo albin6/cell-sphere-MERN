@@ -6,8 +6,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"), // Only this alias should be needed for your src directory
-      "@faker-js/faker": "@faker-js/faker/locale/en",
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 });

@@ -86,6 +86,7 @@ export const get_best_selling = AsyncHandler(async (req, res) => {
   console.log(best_selling_brands);
 
   res.json({
+    success: true,
     products: best_selling_products,
     categories: best_selling_categories,
     brands: best_selling_brands,
