@@ -28,24 +28,6 @@ export const add_new_offer = AsyncHandler(async (req, res) => {
 
   const { name, value, target, targetId, targetName, endDate } = req.body;
 
-  if (target === "product") {
-    const product = await Product.findById(targetId);
-    if (!product) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
-    }
-    product.discount = value;
-
-    await product.save();
-  } else if (target === "category") {
-    const products = await Product.find({ category: targetId });
-    for (const product of products) {
-      product.discount = value;
-      await product.save();
-    }
-  }
-
   // Create a new offer
   const new_offer = await Offer.create({
     name,
@@ -55,6 +37,30 @@ export const add_new_offer = AsyncHandler(async (req, res) => {
     target_name: targetName,
     end_date: endDate,
   });
+
+  if (target === "product") {
+    const product = await Product.findById(targetId);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    if (value > product?.offer?.offer_value || product?.offer == null) {
+      product.offer = new_offer._id;
+    }
+    await product.save();
+  } else if (target === "category") {
+    const products = await Product.find({ category: targetId }).populate(
+      "offer"
+    );
+    for (const product of products) {
+      if (value > product?.offer?.offer_value || product?.offer == null) {
+        product.offer = new_offer._id;
+      }
+      await product.save();
+    }
+  }
 
   console.log("product added ==>", new_offer);
 
@@ -77,18 +83,29 @@ export const delete_offer = AsyncHandler(async (req, res) => {
   }
 
   if (current_offer.target_type == "product") {
-    const product_data = await Product.findByIdAndUpdate(
-      current_offer.target_id,
-      { discount: 0 },
-      { new: true }
-    );
+    const product_data = await Product.findById(current_offer.target_id);
+
+    if (
+      product_data &&
+      product_data.offer &&
+      product_data.offer.target_type === "product"
+    ) {
+      product_data.offer = null;
+    }
+
+    await product_data.save();
   }
 
   if (current_offer.target_type == "category") {
-    const products_data = await Product.updateMany(
-      { category: current_offer.target_id },
-      { $set: { discount: 0 } }
-    );
+    const product_data = await Product.findById(current_offer.target_id);
+
+    if (
+      product_data &&
+      product_data.offer &&
+      product_data.offer.target_type === "category"
+    ) {
+      product_data.offer = null;
+    }
   }
 
   res.status(200).json({ success: true, message: "Offer deleted" });

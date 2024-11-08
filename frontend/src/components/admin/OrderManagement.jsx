@@ -14,6 +14,7 @@ import { Button } from "../../components/ui/ui-components";
 import { X } from "lucide-react";
 import Pagination from "../user/Pagination";
 import ConfirmationModal from "./ConfirmationModal";
+import { generateRandomCode } from "../../utils/random-code/randomCodeGenerator";
 
 export default function Component() {
   const itemsPerPage = 4;
@@ -102,7 +103,7 @@ export default function Component() {
           <tbody>
             {orders.map((order, index) => (
               <tr key={order._id} className="border-b">
-                <td className="p-2">{index + 1}</td>
+                <td className="p-2">{generateRandomCode()}</td>
                 <td className="p-2">{order.user_full_name}</td>
                 <td className="p-2">
                   <ul className="space-y-4">

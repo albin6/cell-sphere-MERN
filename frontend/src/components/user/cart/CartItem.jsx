@@ -15,7 +15,7 @@ const CartItem = ({ product, onRemove, onUpdateQuantity }) => {
   );
 
   useEffect(
-    () => handleStockChange(currentVariant.filter((item) => item.stock === 0)),
+    () => handleStockChange(currentVariant.filter((item) => item.stock < product.quantity)),
     [currentVariant]
   );
   console.log(currentVariant.map((item) => item.stock)[0]);

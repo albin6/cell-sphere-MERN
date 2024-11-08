@@ -14,6 +14,7 @@ import {
 } from "../../utils/category/categoryCRUD";
 import ConfirmationModal from "./ConfirmationModal";
 import Pagination from "../user/Pagination";
+import { generateRandomCode } from "../../utils/random-code/randomCodeGenerator";
 
 function CategoryTable() {
   // ===========================================================================
@@ -88,7 +89,7 @@ function CategoryTable() {
           {categories &&
             categories.map((category) => (
               <tr key={category._id} className="border-b">
-                <td className="border p-2">{category._id}</td>
+                <td className="border p-2">{generateRandomCode()}</td>
                 <td className="border p-2">{category.title}</td>
                 <td className="border p-2">{category.description}</td>
                 <td className="border p-2 text-center">
@@ -124,14 +125,13 @@ function CategoryTable() {
             ))}
         </tbody>
       </table>
-      {
-        categories.length > 0 &&
-       <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        paginate={paginate}
-      />
-      }
+      {categories.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          paginate={paginate}
+        />
+      )}
       {isModalOpen && (
         <EditCategoryModal
           category={editingCategory}

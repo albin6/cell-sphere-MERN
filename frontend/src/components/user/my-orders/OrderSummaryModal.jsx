@@ -17,6 +17,11 @@ const OrderSummaryModal = ({
 }) => {
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState(null);
+
+  const handlePaymentStatus = (status) => {
+    setPaymentStatus(status);
+  };
 
   const handlePlaceOrder = async () => {
     try {
@@ -80,6 +85,7 @@ const OrderSummaryModal = ({
         })),
         discount: coupon + totalDiscount,
         coupon_discount: coupon,
+        payment_status: paymentStatus || "Pending",
       };
 
       console.log("======================================================");
@@ -218,7 +224,14 @@ const OrderSummaryModal = ({
               totalAmount={subtotal}
               handlePlaceOrder={handlePlaceOrder}
               onClose={onClose}
+              onPaymentStatus={handlePaymentStatus}
             />
+          )}
+          {paymentStatus === "failed" && (
+            <div className="error">Payment failed. Please try again.</div>
+          )}
+          {paymentStatus === "success" && (
+            <div className="success">Payment successful!</div>
           )}
         </div>
       </div>

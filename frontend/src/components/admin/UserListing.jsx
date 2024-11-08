@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { logoutUser } from "../../redux/Slices/userSlice";
 import { clearCookie } from "../../utils/clearCookie/clearCookie";
 import Pagination from "../user/Pagination";
+import { generateRandomCode } from "../../utils/random-code/randomCodeGenerator";
 
 export default function UserListing() {
   // ===========================================================================
@@ -98,7 +99,7 @@ export default function UserListing() {
               className="border-b border-gray-200 hover:bg-gray-100"
             >
               <td className="py-3 px-6 text-left whitespace-nowrap">
-                {user._id}
+                {generateRandomCode()}
               </td>
               <td className="py-3 px-6 text-left">{user.first_name}</td>
               <td className="py-3 px-6 text-left">{user.last_name}</td>

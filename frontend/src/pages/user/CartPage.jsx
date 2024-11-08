@@ -9,6 +9,7 @@ function StockContextProvider({ children }) {
   const [stock, setStock] = useState([]);
 
   function handleStockChange(newStock) {
+    console.log('stock change => ', newStock)
     setStock(newStock);
   }
 
