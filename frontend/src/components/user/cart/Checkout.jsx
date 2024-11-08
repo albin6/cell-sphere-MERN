@@ -464,13 +464,41 @@ export default function CheckoutPage() {
               Apply Coupon
             </button>
           </div>
-
-          <button
-            onClick={handlePlaceOrder}
-            className="w-full bg-gray-800 text-white py-3 rounded mt-8 hover:bg-gray-700 transition-colors"
-          >
-            Place Order
-          </button>
+          {productId ? (
+            (!isCouponApplied
+              ? Number(cart?.totalAmount).toFixed(2)
+              : Number(amountAfterApplyingCoupon).toFixed(2)) == 0 ? (
+              <button
+                disabled={true}
+                className="w-full opacity-50 bg-gray-800 text-white py-3 rounded mt-8 hover:bg-gray-700 transition-colors"
+              >
+                Place Order
+              </button>
+            ) : (
+              <button
+                onClick={handlePlaceOrder}
+                className="w-full bg-gray-800 text-white py-3 rounded mt-8 hover:bg-gray-700 transition-colors"
+              >
+                Place Order
+              </button>
+            )
+          ) : (!isCouponApplied
+              ? total.toFixed(2)
+              : amountAfterApplyingCoupon.toFixed(2)) == 0 ? (
+            <button
+              disabled={true}
+              className="w-full opacity-50 bg-gray-800 text-white py-3 rounded mt-8 hover:bg-gray-700 transition-colors"
+            >
+              Place Order
+            </button>
+          ) : (
+            <button
+              onClick={handlePlaceOrder}
+              className="w-full bg-gray-800 text-white py-3 rounded mt-8 hover:bg-gray-700 transition-colors"
+            >
+              Place Order
+            </button>
+          )}
         </div>
       </div>
       {isAddressModalOpen && (

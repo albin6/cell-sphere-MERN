@@ -421,7 +421,10 @@ function ProductDetails() {
               {selectedVariant &&
                 (
                   selectedVariant.price -
-                  (selectedVariant.price * product.discount) / 100
+                  (selectedVariant.price *
+                    (product.discount +
+                      (product?.offer ? product?.offer?.offer_value : 0))) /
+                    100
                 ).toFixed(2)}
             </span>
             <span className="text-sm text-gray-600 ml-2">
@@ -434,8 +437,18 @@ function ProductDetails() {
               <span className="text-green-600 ml-2">
                 (Save ₹
                 {selectedVariant &&
-                  ((selectedVariant.price * product.discount) / 100).toFixed(2)}
-                , {product.discount}% off)
+                  (
+                    (selectedVariant.price *
+                      (product.discount +
+                        (product?.offer && product?.offer?.offer_value
+                          ? product?.offer?.offer_value
+                          : 0))) /
+                    100
+                  ).toFixed(2)}
+                ,{" "}
+                {product.discount +
+                  (product?.offer ? product?.offer?.offer_value : 0)}
+                % off)
               </span>
             </div>
           </div>

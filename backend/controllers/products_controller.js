@@ -103,6 +103,7 @@ export const get_all_products_details = AsyncHandler(async (req, res) => {
   try {
     // Fetch all products with populated category and brand details
     const products_data = await Product.find({ is_active: true })
+      .populate("offer")
       .populate("category")
       .populate("brand");
 
@@ -155,6 +156,7 @@ export const get_product = AsyncHandler(async (req, res) => {
   const productId = req.params.productId;
 
   const product = await Product.findOne({ _id: productId })
+    .populate("offer")
     .populate("category")
     .populate("brand");
 

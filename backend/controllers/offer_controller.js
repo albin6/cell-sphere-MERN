@@ -46,7 +46,12 @@ export const add_new_offer = AsyncHandler(async (req, res) => {
         .json({ success: false, message: "Product not found" });
     }
 
-    if (value > product?.offer?.offer_value || product?.offer == null) {
+    console.log("pro===>", value > product?.offer?.offer_value);
+
+    if (
+      value > product?.offer?.offer_value ||
+      product?.offer?.offer_value == undefined
+    ) {
       product.offer = new_offer._id;
     }
     await product.save();
@@ -55,7 +60,10 @@ export const add_new_offer = AsyncHandler(async (req, res) => {
       "offer"
     );
     for (const product of products) {
-      if (value > product?.offer?.offer_value || product?.offer == null) {
+      if (
+        value > product?.offer?.offer_value ||
+        product?.offer?.offer_value == undefined
+      ) {
         product.offer = new_offer._id;
       }
       await product.save();
@@ -83,21 +91,22 @@ export const delete_offer = AsyncHandler(async (req, res) => {
   }
 
   if (current_offer.target_type == "product") {
-    const product_data = await Product.findById(current_offer.target_id);
+    const product_data = await Product.find({
+      category: current_offer.target_id,
+    }).populate("offer");
 
-    if (
-      product_data &&
-      product_data.offer &&
-      product_data.offer.target_type === "product"
-    ) {
-      product_data.offer = null;
+    for (const product of product_data) {
+      if (product.offer && product.offer.target_type === "product") {
+        product.offer = null;
+      }
+      await product.save();
     }
-
-    await product_data.save();
   }
 
   if (current_offer.target_type == "category") {
-    const product_data = await Product.findById(current_offer.target_id);
+    const product_data = await Product.findById(
+      current_offer.target_id
+    ).populate("offer");
 
     if (
       product_data &&

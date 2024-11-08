@@ -32,7 +32,11 @@ function ProductCard({ product }) {
             ₹
             {(
               product?.price -
-              (product?.price * product?.discount) / 100
+              (product?.price * product?.discount +
+                (product?.offer && product?.offer?.offer_value
+                  ? product?.offer?.offer_value
+                  : 0)) /
+                100
             ).toFixed(2)}
           </span>
           <span className="text-xs sm:text-sm text-gray-500 line-through ml-2">
