@@ -56,7 +56,7 @@ export default function CheckoutPage() {
   const [amountAfterApplyingCoupon, setAmountAfterApplyingCoupon] =
     useState(null);
   const [discountAfterApplyingCoupon, setDiscountAfterApplyingCoupon] =
-    useState(0);
+    useState(null);
 
   const { data: profileAddress } = useProfileAddress();
   const { mutate: addAddress } = useProfileAddressMutation(addNewAddress);
@@ -171,15 +171,18 @@ export default function CheckoutPage() {
   const handleRemoveCoupon = () => {
     setIsCouponApplied(false);
     setEligibleProducts([]);
-    setDiscountAfterApplyingCoupon(0);
+    setDiscountAfterApplyingCoupon(null);
     setAmountAfterApplyingCoupon(null);
     setAppliedCoupon(null);
   };
 
   const final = productId
-    ? Number(amountAfterApplyingCoupon) || Number(total)
+    ? !isCouponApplied
+      ? Number(cart?.totalAmount).toFixed(2)
+      : Number(amountAfterApplyingCoupon).toFixed(2)
     : Number(amountAfterApplyingCoupon) || Number(cart?.totalAmount);
 
+  console.log("total for cod =>", final);
   if (isLoading) {
     return <h3>Loading...</h3>;
   }

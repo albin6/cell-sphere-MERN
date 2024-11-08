@@ -34,13 +34,14 @@ export const add_product_to_cart = AsyncHandler(async (req, res) => {
   try {
     const user_id = req.user.id;
     const { sku, price } = req.body.selectedVariant;
-    const { discount } = req.body.product;
+    const { discount, offer } = req.body.product;
     const quantity = 1;
 
     console.log(price);
 
     console.log((price * discount) / 100);
-    const discountAmount = (price * discount) / 100;
+    const discountAmount =
+      (price * (discount + (offer?.offer_value ? offer.offer_value : 0))) / 100;
     const totalPrice = price - discountAmount;
 
     console.log(totalPrice);
@@ -51,7 +52,7 @@ export const add_product_to_cart = AsyncHandler(async (req, res) => {
       variant: sku,
       quantity,
       price,
-      discount,
+      discount: discount + (offer?.offer_value ? offer.offer_value : 0),
       totalPrice,
     };
 

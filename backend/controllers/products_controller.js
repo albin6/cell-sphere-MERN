@@ -478,8 +478,9 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
 
   // Find the product by ID
   const product = await Product.findById(productId)
-    .populate("brand", "name") // Assuming you want the name of the brand to be populated
-    .populate("category", "name") // Assuming you want the name of the category to be populated
+    .populate("offer")
+    .populate("brand") // Assuming you want the name of the brand to be populated
+    .populate("category") // Assuming you want the name of the category to be populated
     .exec();
 
   if (!product) {
@@ -530,7 +531,11 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
       },
     ],
     totalAmount:
-      selectedVariant.price - selectedVariant.price * (product.discount / 100),
+      selectedVariant.price -
+      selectedVariant.price *
+        ((product.discount +
+          (product.offer?.offer_value ? product.offer?.offer_value : 0)) /
+          100),
   };
 
   // Return the response

@@ -43,7 +43,11 @@ function ProductCard({ product }) {
             ₹{product?.price}
           </span>
           <span className="text-xs sm:text-sm text-green-600 ml-2">
-            {product?.discount}% Off
+            {product?.discount +
+              (product?.offer && product?.offer?.offer_value
+                ? product?.offer?.offer_value
+                : 0)}
+            % Off
           </span>
         </div>
         <div className="text-xs sm:text-sm text-gray-600 flex items-center">

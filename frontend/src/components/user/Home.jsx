@@ -44,6 +44,7 @@ function Home() {
 
   useEffect(() => {
     try {
+      console.log(data);
       setProducts(data?.products || []);
       setCategories(data?.categories || []);
       setBrands(data?.brands || []);
