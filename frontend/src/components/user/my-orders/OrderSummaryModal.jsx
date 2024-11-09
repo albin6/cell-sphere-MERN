@@ -9,6 +9,7 @@ const OrderSummaryModal = ({
   subtotal,
   shipping,
   coupon,
+  code,
   total,
   paymentMethod,
   selectedAddress,
@@ -78,7 +79,9 @@ const OrderSummaryModal = ({
           variant: item.variant,
           quantity: item.quantity,
           price: item.price,
-          discount: item.discount,
+          discount:
+            item.discount +
+            (item?.offer?.offer_value ? item?.offer?.offer_value : 0),
           total_price: item.totalPrice - coupon || 0,
         })),
         discount: coupon + totalDiscount,
@@ -91,6 +94,8 @@ const OrderSummaryModal = ({
 
       const response = await axiosInstance.post("/api/users/place-order", {
         order_data,
+        is_coupon_applied: coupon,
+        code,
       });
 
       console.log(response.data);

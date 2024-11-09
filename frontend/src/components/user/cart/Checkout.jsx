@@ -51,6 +51,7 @@ export default function CheckoutPage() {
   const [isOrderSummaryModalOpen, setIsOrderSummaryModalOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState(null);
   const [eligibleProducts, setEligibleProducts] = useState(null);
+  const [code, setCode] = useState("");
 
   const [isCouponApplied, setIsCouponApplied] = useState(false);
   const [amountAfterApplyingCoupon, setAmountAfterApplyingCoupon] =
@@ -119,6 +120,7 @@ export default function CheckoutPage() {
       amount: item.totalPrice,
       code: couponCode,
     }));
+    setCode(couponCode);
     console.log("category ids set", categoryIds);
 
     applyCoupon(categoryIds)
@@ -522,6 +524,7 @@ export default function CheckoutPage() {
             subtotal={subtotal}
             shipping={shipping}
             coupon={discountAfterApplyingCoupon}
+            code={code}
             total={isCouponApplied ? amountAfterApplyingCoupon : total}
             paymentMethod={paymentMethod}
             selectedAddress={addresses[selectedAddress]}
@@ -542,6 +545,7 @@ export default function CheckoutPage() {
               }
               shipping={shipping}
               coupon={discountAfterApplyingCoupon}
+              code={code}
               total={
                 isCouponApplied ? amountAfterApplyingCoupon : cart?.totalAmount
               }

@@ -128,6 +128,10 @@ export default function Component() {
                               <select
                                 id={`status-select-${order._id}`}
                                 value={item.order_status}
+                                disabled={
+                                  item.order_status === "Cancelled" ||
+                                  item.order_status === "Delivered"
+                                }
                                 onChange={(e) =>
                                   handleStatusChange(
                                     order._id,
@@ -243,7 +247,7 @@ export default function Component() {
                 <span className="sr-only">Close</span>
               </Button>
             </div>
-            <div className="p-4 overflow-y-auto max-h-[calc(90vh-4rem)]">
+            <div className="overflow-y-auto max-h-[calc(90vh-4rem)]">
               <OrderDetails orderId={selectedOrderId} />
             </div>
           </div>

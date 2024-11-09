@@ -6,6 +6,7 @@ import Product from "../models/productModel.js";
 import Cart from "../models/cartModel.js";
 import Wallet from "../models/walletModel.js";
 import SalesReport from "../models/salesModel.js";
+import Coupon from "../models/couponModel.js";
 
 const createSalesReport = async (orderId) => {
   try {
@@ -68,11 +69,42 @@ const createSalesReport = async (orderId) => {
 export const place_order = AsyncHandler(async (req, res) => {
   console.log("in place_order");
 
-  const { order_data } = req.body;
+  const { order_data, is_coupon_applied, code } = req.body;
 
   console.log("===================================");
   console.log(order_data);
   console.log("===================================");
+
+  if (is_coupon_applied) {
+    const coupon = await Coupon.findOne({ code });
+
+    if (!coupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+
+    const appliedUser = coupon.users_applied.find(
+      (entry) => entry.user.toString() === req.user.id
+    );
+
+    if (appliedUser) {
+      await Coupon.updateOne(
+        { code, "users_applied.user": req.user.id },
+        { $inc: { "users_applied.$.used_count": 1 } }
+      );
+    } else {
+      await Coupon.updateOne(
+        { code },
+        {
+          $push: {
+            users_applied: {
+              user: req.user.id,
+              used_count: 1,
+            },
+          },
+        }
+      );
+    }
+  }
 
   const new_order = new Order({ ...order_data, user: req.user.id });
 
@@ -224,7 +256,12 @@ export const get_specific_order_details = AsyncHandler(async (req, res) => {
 
   const order = await Order.findById(order_id)
     .populate("user")
-    .populate("order_items.product");
+    .populate({
+      path: "order_items.product",
+      populate: {
+        path: "offer",
+      },
+    });
 
   console.log(order);
 

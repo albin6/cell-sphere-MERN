@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import CancelOrderModal from "./CancelOrderModal";
 import { toast } from "react-toastify";
 import {
@@ -13,6 +13,8 @@ import FailedPayment from "../paypal-payment/FailedPayment";
 import { generateRandomCode } from "../../../utils/random-code/randomCodeGenerator";
 
 const OrderDetails = ({ orderId: propsOrderId }) => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname === "/admin/orders";
   const naviagate = useNavigate();
   const { orderId: paramsOrderId } = useParams();
 
@@ -141,7 +143,7 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
   }
 
   return (
-    <div className="container w-2/3 mx-auto px-4 py-8">
+    <div className="container w-2/3 mx-auto py-8">
       {paramsOrderId && (
         <>
           <nav className="text-sm mb-4">
@@ -238,14 +240,16 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
               >
                 {order.orders.payment_status}
               </p>
-              {anyOrderLeft && order.orders.payment_status === "Failed" && (
-                <button
-                  onClick={() => setIsPaymentModalOpen(true)}
-                  className="w-full sm:w-auto bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600"
-                >
-                  Retry Payment
-                </button>
-              )}
+              {!isAdminRoute &&
+                anyOrderLeft &&
+                order.orders.payment_status === "Failed" && (
+                  <button
+                    onClick={() => setIsPaymentModalOpen(true)}
+                    className="w-full sm:w-auto bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600"
+                  >
+                    Retry Payment
+                  </button>
+                )}
             </div>
             <div className="gap-3">
               <h3 className="font-semibold mb-2">Order Summary</h3>
@@ -313,7 +317,7 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
                         Price: ₹{o.total_price}{" "}
                         <span className="text-sm text-green-800 font-semibold">
                           <strike className=" text-red-800">₹{o.price}</strike>{" "}
-                          {o.discount} %
+                          {o.discount}%
                         </span>
                       </p>
                     </div>

@@ -279,26 +279,6 @@ export const apply_coupon = AsyncHandler(async (req, res) => {
 
     const total_after_discount = amount - discountAmount;
 
-    // Update user's usage count if applicable
-    if (appliedUser) {
-      await Coupon.updateOne(
-        { code, "users_applied.user": req.user.id },
-        { $inc: { "users_applied.$.used_count": 1 } }
-      );
-    } else {
-      await Coupon.updateOne(
-        { code },
-        {
-          $push: {
-            users_applied: {
-              user: req.user.id,
-              used_count: 1,
-            },
-          },
-        }
-      );
-    }
-
     // Add item details to response array
     response.push({
       id,

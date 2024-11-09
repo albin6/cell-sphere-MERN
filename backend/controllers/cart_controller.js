@@ -1,7 +1,6 @@
 import AsyncHandler from "express-async-handler";
 import Cart from "../models/cartModel.js";
 import mongoose from "mongoose";
-import Product from "../models/productModel.js";
 
 // ----------------------------------------------------------------------------
 // for getting cart products
@@ -11,9 +10,12 @@ export const get_cart_products = AsyncHandler(async (req, res) => {
 
   const user_id = req.user.id;
 
-  const cart_data = await Cart.findOne({ user: user_id }).populate(
-    "items.product"
-  );
+  const cart_data = await Cart.findOne({ user: user_id }).populate({
+    path: "items.product",
+    populate: {
+      path: "offer",
+    },
+  });
 
   console.log(cart_data);
 
