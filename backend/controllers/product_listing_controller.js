@@ -4,6 +4,20 @@ import Product from "../models/productModel.js";
 import Category from "../models/categoryModel.js";
 import Brand from "../models/brandModel.js";
 
+export const get_category_product = AsyncHandler(async (req, res) => {
+  const { categoryId } = req.query;
+
+  const products = await Product.find({ category: categoryId });
+
+  if (!products) {
+    return res
+      .status(404)
+      .json({ success: false, message: "No products found in this category" });
+  }
+
+  res.json({ success: true, products });
+});
+
 export const get_products_of_category = AsyncHandler(async (req, res) => {
   const categoryId = req.params.categoryId;
 

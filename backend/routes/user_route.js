@@ -18,6 +18,7 @@ import {
   variant_details_of_product,
 } from "../controllers/products_controller.js";
 import {
+  get_category_product,
   get_listing_products_details,
   get_products_of_brand,
   get_products_of_category,
@@ -73,6 +74,10 @@ import {
 } from "../controllers/referral_controller.js";
 import { generate_order_invoice } from "../controllers/sales_controller.js";
 import { re_payment } from "../models/payment_controller.js";
+import {
+  add_new_review_and_rating,
+  get_all_reviews_and_ratings,
+} from "../controllers/review_controller.js";
 const user_router = express.Router();
 
 user_router.post("/signup", register);
@@ -127,6 +132,21 @@ user_router.get(
   check_role(["user"]),
   get_listing_products_details
 );
+
+user_router.get(
+  "/get-category-products",
+  authenticate_token,
+  check_role(["user"]),
+  get_category_product
+);
+
+// ----------------------------------------------------
+// ----------------------------------------------------
+
+user_router
+  .route("/reviews")
+  .get(authenticate_token, check_role(["user"]), get_all_reviews_and_ratings)
+  .post(authenticate_token, check_role(["user"]), add_new_review_and_rating);
 
 // ----------------------------------------------------
 // ----------------------------------------------------

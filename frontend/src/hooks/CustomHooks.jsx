@@ -18,6 +18,8 @@ import {
   getActiveBanners,
   getUserActiveBanners,
 } from "../utils/banner/bannerCRUD";
+import { getProductOfSpecificCategories } from "../utils/suggession-category/suggesstionProduct";
+import { getAllReviewsAndRating } from "../utils/reviews-and-ratings/reviewsCRUD";
 
 export function useUserAuth() {
   const user = useSelector((state) => state.user.userInfo);
@@ -408,6 +410,33 @@ export const useBannersMutation = (mutationFunc) => {
     onSuccess: () => {
       queryClient.invalidateQueries("banners");
       queryClient.invalidateQueries("userBanners");
+    },
+  });
+};
+// ----------------------------------------------------------------
+
+// for getting products of specific category
+export const useSpecificCategory = (id) => {
+  return useQuery({
+    queryKey: ["get-product-of-specific-category"],
+    queryFn: () => getProductOfSpecificCategories(id),
+  });
+};
+
+// for adding getting all rating and reviews
+export const useAllRatingAndReviews = (queryFunc, productId) => {
+  return useQuery({
+    queryKey: ["reviewsandratings"],
+    queryFn: () => queryFunc(productId),
+  });
+};
+
+export const useAllRatingAndReviewsMutation = (mutationFunc) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: mutationFunc,
+    onSuccess: () => {
+      queryClient.invalidateQueries("reviewsandratings");
     },
   });
 };

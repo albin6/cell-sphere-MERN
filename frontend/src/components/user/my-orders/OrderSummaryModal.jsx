@@ -154,7 +154,7 @@ const OrderSummaryModal = ({
                     </p>
                   </div>
                   <p>
-                    ₹{item.totalPrice} x {item.quantity}
+                    ₹{item.totalPrice.toFixed(2)} x {item.quantity}
                   </p>
                 </div>
               ))}

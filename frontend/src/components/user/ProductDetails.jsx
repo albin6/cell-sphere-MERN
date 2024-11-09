@@ -29,7 +29,6 @@ import {
 } from "../ui/ui-components";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { useMouseOverZoom } from "../../hooks/useMouseOverZoom";
-import ProductCard from "./ProductCard";
 import { axiosInstance } from "../../config/axiosInstance";
 import ReviewRating from "./ReviewRating";
 
@@ -40,8 +39,7 @@ import {
   removeFromWishlist,
 } from "../../utils/wishlist/wishlistCRUD";
 import { toast } from "react-toastify";
-
-// Corrected useMouseOverZoom hook
+import Suggession from "./Suggession";
 
 function ProductDetails() {
   const navigate = useNavigate();
@@ -54,7 +52,6 @@ function ProductDetails() {
   const [availableRam, setAvailableRam] = useState([]);
   const [availableStorage, setAvailableStorage] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [products, setProducts] = useState([]);
   const [isProductExists, setIsProductExists] = useState(false);
 
   const [isProductExistsInWishlist, setIsProductExistsInWishlist] =
@@ -67,15 +64,6 @@ function ProductDetails() {
     useWishlistProductMutation(removeFromWishlist);
 
   const { data: forChecking } = useWishlistProduct();
-
-  const { data } = useUserProductsData(fetchProductsDetails);
-  useEffect(() => {
-    try {
-      setProducts(data?.products || []);
-    } catch (error) {
-      console.error("Error setting data:", error);
-    }
-  }, [data]);
 
   useEffect(() => {
     if (product && product.variants.length > 0) {
@@ -189,17 +177,11 @@ function ProductDetails() {
   const { isActive } = useMouseOverZoom(sourceRef, targetRef, cursorRef);
 
   useEffect(() => {
-    // Ensure the canvas is the right size
     if (targetRef.current) {
       targetRef.current.width = 400;
       targetRef.current.height = 400;
     }
   }, []);
-
-  const addToWishlist = (currentVariant) => {
-    console.log("in add to wishlist=>", product);
-    console.log(currentVariant);
-  };
 
   const checkAddToCart = () => {
     if (isProductExists) {
@@ -614,32 +596,10 @@ function ProductDetails() {
             </Button>
           </div>
 
-          <ReviewRating />
+          <ReviewRating productId={id} />
         </div>
       </div>
-      <section className="py-8 sm:py-12 md:py-16 px-4 md:px-8 bg-gray-50">
-        <Link to="/products/list">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 sm:mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-0">
-              Related Products...
-            </h2>
-            <Button
-              variant="outline"
-              className="border-gray-300 bg-gray-800 text-white hover:bg-gray-700"
-            >
-              View All
-            </Button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8">
-            {products &&
-              products
-                .slice(0, 5)
-                .map((product) => (
-                  <ProductCard key={product._id} product={product} />
-                ))}
-          </div>
-        </Link>
-      </section>
+      <Suggession categoryId={product?.category?._id} />
     </div>
   );
 }
