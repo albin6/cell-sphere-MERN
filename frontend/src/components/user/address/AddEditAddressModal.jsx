@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react";
 import { Button } from "../../ui/ui-components";
 import { Input } from "../../ui/ui-components";
 import { Label } from "../../ui/ui-components";

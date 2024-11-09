@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import NewPassword from "./NewPassword";
@@ -30,7 +29,6 @@ export default function ForgotPasswordFlow() {
     } catch (err) {
       console.log(err);
     }
-    // Redirect to login page or show success message
   };
 
   const handleCurrentPasswordSubmit = async (currentPassword) => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../../ui/ui-components";
-import { PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import AddEditAddressModal from "./AddEditAddressModal";
 import AddressCard from "./AddressCard";
 import {
