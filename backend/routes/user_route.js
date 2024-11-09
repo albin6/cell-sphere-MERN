@@ -11,6 +11,7 @@ import {
   reset_the_password,
   check_current_password,
   send_otp_for_forgot_password,
+  get_user_specific_info,
 } from "../controllers/user_controller.js";
 import {
   get_all_products_details,
@@ -305,6 +306,16 @@ user_router
   .route("/wallet")
   .get(authenticate_token, check_role(["user"]), get_wallet_details)
   .put(authenticate_token, check_role(["user"]), update_wallet_balance);
+
+// ----------------------------------------------------
+// ----------------------------------------------------
+
+user_router.get(
+  "/get-user-info",
+  authenticate_token,
+  check_role(["user"]),
+  get_user_specific_info
+);
 
 // ----------------------------------------------------
 // ----------------------------------------------------

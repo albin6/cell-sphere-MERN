@@ -361,3 +361,13 @@ export const new_access_token_generate = AsyncHandler(async (req, res) => {
     }
   }
 });
+
+// -------------------------------------------------------------------------------
+
+export const get_user_specific_info = AsyncHandler(async (req, res) => {
+  console.log("in get user specific info");
+
+  const user_data = await User.findById(req.user.id);
+
+  res.json({ success: true, user_data });
+});
