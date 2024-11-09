@@ -17,13 +17,11 @@ const OrderSummaryModal = ({
 }) => {
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
-  const [paymentStatus, setPaymentStatus] = useState(null);
 
-  const handlePaymentStatus = (status) => {
-    setPaymentStatus(status);
-  };
+  const [paymentStatus, setStatus] = useState(null);
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrder = async (payment_status) => {
+    setStatus(payment_status);
     try {
       console.log("cart===>", cart);
       console.log("selectedAddress===>", selectedAddress);
@@ -85,7 +83,7 @@ const OrderSummaryModal = ({
         })),
         discount: coupon + totalDiscount,
         coupon_discount: coupon,
-        payment_status: paymentStatus || "Pending",
+        payment_status: payment_status || "Paid",
       };
 
       console.log("======================================================");
@@ -193,7 +191,7 @@ const OrderSummaryModal = ({
               </button>
               {paymentMethod !== "Paypal" && (
                 <button
-                  onClick={handlePlaceOrder}
+                  onClick={() => handlePlaceOrder()}
                   className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"
                 >
                   Place Order
@@ -219,19 +217,22 @@ const OrderSummaryModal = ({
           </div>
         )}
         <div className="mt-5">
-          {paymentMethod === "Paypal" && (
+          {!paymentStatus && paymentMethod === "Paypal" && (
             <PaypalCheckout
               totalAmount={subtotal}
               handlePlaceOrder={handlePlaceOrder}
               onClose={onClose}
-              onPaymentStatus={handlePaymentStatus}
             />
           )}
-          {paymentStatus === "failed" && (
-            <div className="error">Payment failed. Please try again.</div>
+          {paymentStatus && paymentStatus === "Failed" && (
+            <div className="text-red-700 text-center">
+              Payment failed. Please try again from the order.
+            </div>
           )}
-          {paymentStatus === "success" && (
-            <div className="success">Payment successful!</div>
+          {paymentStatus && paymentStatus === "Paid" && (
+            <div className="text-green-800 text-center">
+              Payment successful!
+            </div>
           )}
         </div>
       </div>

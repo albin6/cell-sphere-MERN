@@ -72,6 +72,7 @@ import {
   verify_referral_code,
 } from "../controllers/referral_controller.js";
 import { generate_order_invoice } from "../controllers/sales_controller.js";
+import { re_payment } from "../models/payment_controller.js";
 const user_router = express.Router();
 
 user_router.post("/signup", register);
@@ -257,6 +258,15 @@ user_router
   .route("/orders/:orderId")
   .get(authenticate_token, check_role(["user"]), get_specific_order_details)
   .patch(authenticate_token, check_role(["user"]), cancel_order);
+
+// re payment
+
+user_router.put(
+  "/re-payment",
+  authenticate_token,
+  check_role(["user"]),
+  re_payment
+);
 
 // ---------------------------------------------------
 // ---------------------------------------------------

@@ -7,9 +7,10 @@ export const get_wishlist_products = AsyncHandler(async (req, res) => {
   console.log("in get_all_wishlist_products");
 
   const user_id = req.user.id;
-  const wishlist_items = await Wishlist.find({ user: user_id }).populate(
-    "items.product"
-  );
+  const wishlist_items = await Wishlist.find({ user: user_id }).populate({
+    path: "items.product",
+    match: { is_active: true },
+  });
 
   if (!wishlist_items) {
     return res.status(404).json({ success: false });

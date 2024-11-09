@@ -7,7 +7,7 @@ import NoOrdersFound from "./NoOrdersFoundUser";
 export default function Component() {
   const [orders, setOrders] = useState([]);
 
-  const { data } = useAllOrders(getOrdersUser); // order_data [arr]
+  const { data, refetch } = useAllOrders(getOrdersUser); // order_data [arr]
 
   useEffect(() => {
     setOrders(data);
@@ -21,7 +21,7 @@ export default function Component() {
     <div className="container mx-auto p-4 space-y-4">
       {orders &&
         orders.map((order, index) => (
-          <OrderCard key={order.id} order={order} />
+          <OrderCard key={order.id} order={order} refetch={refetch} />
         ))}
     </div>
   );

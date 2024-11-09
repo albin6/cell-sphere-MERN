@@ -2,8 +2,17 @@ import React, { useState, useEffect } from "react";
 import { Calendar, Download, FileSpreadsheet } from "lucide-react"; // Replace with actual icons
 import { adminAxiosInstance } from "../../config/axiosInstance";
 import { saveAs } from "file-saver"; // For file saving
+import Pagination from "../user/Pagination";
 
 const SalesReport = () => {
+  // ========================== for pagination =================================
+  const itemsPerPage = 7;
+  const [totalPages, setTotalPages] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  // ===========================================================================
   const [selectedRange, setSelectedRange] = useState("daily");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -37,9 +46,13 @@ const SalesReport = () => {
           period: selectedRange,
           startDate: selectedRange === "custom" ? startDate : undefined,
           endDate: selectedRange === "custom" ? endDate : undefined,
+          page: currentPage,
+          limit: itemsPerPage,
         },
       });
       console.log(response.data);
+      setTotalPages(response.data.totalPages);
+      setCurrentPage(response.data.page);
       setTotalDiscount(
         response.data.reports.reduce(
           (acc, curr) =>
@@ -57,6 +70,10 @@ const SalesReport = () => {
       console.error("Error fetching sales data:", error);
     }
   };
+
+  useEffect(() => {
+    fetchSalesData();
+  }, [currentPage]);
 
   const downloadPDF = () => {
     adminAxiosInstance
@@ -211,6 +228,13 @@ const SalesReport = () => {
               </tr>
             </tfoot>
           </table>
+          {salesData.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              paginate={paginate}
+            />
+          )}
         </div>
       </div>
 

@@ -1,6 +1,5 @@
 import AsyncHandler from "express-async-handler";
 import SalesReport from "../models/salesModel.js";
-import pdfkit from "pdfkit";
 import PdfPrinter from "pdfmake";
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit-table";
@@ -44,7 +43,15 @@ const getSalesReportData = async (startDate, endDate, period) => {
 
 export const get_sales_report = AsyncHandler(async (req, res) => {
   console.log(req.query);
-  const { startDate = null, endDate = null, period = "daily" } = req.query;
+  const {
+    startDate = null,
+    endDate = null,
+    period = "daily",
+    page = 1,
+    limit = 10,
+  } = req.query;
+
+  const skip = (page - 1) * limit;
 
   console.log(
     "Query Parameters - startDate:",
@@ -91,9 +98,13 @@ export const get_sales_report = AsyncHandler(async (req, res) => {
 
   console.log(dateFilter);
 
+  const total_sales_report_count = await SalesReport.countDocuments(dateFilter);
+  const totalPages = Math.ceil(total_sales_report_count / limit);
   const reports = await SalesReport.find(dateFilter)
     .populate("product")
-    .populate("customer");
+    .populate("customer")
+    .skip(skip)
+    .limit(limit);
 
   const totalSalesCount = reports.length;
   const totalOrderAmount = reports.reduce(
@@ -110,6 +121,8 @@ export const get_sales_report = AsyncHandler(async (req, res) => {
     totalSalesCount,
     totalOrderAmount,
     totalDiscount,
+    totalPages,
+    page,
   });
 });
 

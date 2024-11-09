@@ -43,15 +43,15 @@ export const get_products_details = AsyncHandler(async (req, res) => {
       ? await Product.find()
           .populate("category")
           .populate("brand")
+          .sort(sort_option)
           .skip(skip)
           .limit(limit)
-          .sort(sort_option)
       : await Product.find({ category: category_id._id })
           .populate("category")
           .populate("brand")
+          .sort(sort_option)
           .skip(skip)
-          .limit(limit)
-          .sort(sort_option);
+          .limit(limit);
 
   // Fetch all categories
   const categories = await Category.find({ status: true });

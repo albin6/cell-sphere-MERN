@@ -9,6 +9,8 @@ import {
 import { cancelOrder, getOrderDetails } from "../../../utils/order/orderCRUD";
 import { FileDown, Loader2 } from "lucide-react";
 import { axiosInstance } from "../../../config/axiosInstance";
+import FailedPayment from "../paypal-payment/FailedPayment";
+import { generateRandomCode } from "../../../utils/random-code/randomCodeGenerator";
 
 const OrderDetails = ({ orderId: propsOrderId }) => {
   const naviagate = useNavigate();
@@ -18,7 +20,9 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
 
   const [sku, setSku] = useState(null);
 
-  const { data: order_data } = useOrderDetails(getOrderDetails(orderId));
+  const { data: order_data, refetch } = useOrderDetails(
+    getOrderDetails(orderId)
+  );
   const { mutate: cancel_order } = useOrderDetailsMutation(cancelOrder);
 
   const [userName, setUserName] = useState("");
@@ -27,6 +31,15 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderDetails, setOrderDetails] = useState({});
+  const [anyOrderLeft, setAnyOrderLeft] = useState(null);
+  const [isRepaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  const handleCloseRapaymentModal = (isSuccess) => {
+    setIsPaymentModalOpen(false);
+    if (isSuccess) {
+      refetch();
+    }
+  };
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -100,22 +113,28 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
           (acc, curr) => acc + curr.total_price,
           0
         ),
-
         itemtotalAfterDiscount: order_data.total,
-
         totalDiscountAmount: order_data.orders.order_items.reduce(
           (acc, curr) => acc + (curr.price * curr.discount) / 100,
           0
         ),
-
         totalDiscount: order_data.orders.coupon_discount,
-
         orderStatus: order_data.orders.order_status,
       });
     }
   }, [order_data]);
 
-  useEffect(() => console.log(orderDetails), [orderDetails]);
+  useEffect(() => {
+    const hasEligibleItems =
+      order?.orders?.order_items &&
+      order.orders.order_items.some(
+        (item) =>
+          item.order_status === "Shipped" || item.order_status === "Pending"
+      );
+    setAnyOrderLeft(hasEligibleItems);
+  }, [order]);
+
+  useEffect(() => console.log(anyOrderLeft), [anyOrderLeft]);
 
   if (!order) {
     return <h4>Loading....</h4>;
@@ -171,8 +190,10 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
         <div className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
             <p className="text-gray-600 text-sm mb-2 sm:mb-0">
-              Order# {orderId} | Delivery By {order && order.deliveryBy}
+              Order# {generateRandomCode()} | Delivery By{" "}
+              {order && order.deliveryBy}
             </p>
+
             <button
               onClick={() => generateInvoice(orderId)}
               disabled={generatingInvoice === orderId}
@@ -207,6 +228,24 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
             <div>
               <h3 className="font-semibold mb-2">Payment Method</h3>
               <p className="text-sm">{order.orders.payment_method}</p>
+              <h3 className="font-semibold mb-2">Payment Status</h3>
+              <p
+                className={`text-sm ${
+                  order.orders.payment_status === "Failed"
+                    ? "text-red-600"
+                    : "text-green-700"
+                }`}
+              >
+                {order.orders.payment_status}
+              </p>
+              {anyOrderLeft && order.orders.payment_status === "Failed" && (
+                <button
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="w-full sm:w-auto bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600"
+                >
+                  Retry Payment
+                </button>
+              )}
             </div>
             <div className="gap-3">
               <h3 className="font-semibold mb-2">Order Summary</h3>
@@ -281,7 +320,7 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
                     <div className=" ">
                       <div>
                         <p className="text-green-600 font-semibold mb-2 sm:mb-0">
-                          Status : {o.order_status}
+                          Order Status : {o.order_status}
                         </p>
                       </div>
                       <div className="space-y-2 flex justify-end sm:space-y-0 sm:space-x-2">
@@ -319,6 +358,14 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
               onConfirm={handleConfirmCancel}
               orderNumber={orderId}
             />
+
+            {isRepaymentModalOpen && (
+              <FailedPayment
+                onClose={handleCloseRapaymentModal}
+                amount={orderDetails.itemtotalAfterDiscount}
+                orderId={orderId}
+              />
+            )}
           </div>
         </div>
       </div>

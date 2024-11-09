@@ -8,18 +8,23 @@ const CartItem = ({ product, onRemove, onUpdateQuantity }) => {
   const { handleStockChange } = useContext(stockContext);
   const currentVariant = useMemo(
     () =>
-      product.product.variants.filter(
+      product?.product?.variants.filter(
         (variant) => variant.sku === product.variant
       ),
     [product]
   );
 
   useEffect(
-    () => handleStockChange(currentVariant.filter((item) => item.stock < product.quantity)),
+    () =>
+      handleStockChange(
+        currentVariant &&
+          currentVariant.filter((item) => item.stock < product.quantity)
+      ),
     [currentVariant]
   );
-  console.log(currentVariant.map((item) => item.stock)[0]);
-  console.log(product.quantity);
+
+  if (!product?.product) return;
+
   return (
     <div className="flex flex-col sm:flex-row items-center border rounded-lg p-4 mb-4">
       <img

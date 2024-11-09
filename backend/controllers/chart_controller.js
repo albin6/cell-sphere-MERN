@@ -67,14 +67,12 @@ export const get_chart_data = AsyncHandler(async (req, res) => {
       {
         $match: {
           placed_at: { $gte: startDate, $lte: endDate },
-          "order_items.order_status": { $ne: "Cancelled" },
         },
       },
       {
         $group: {
           _id: { $dateToString: { format: "%Y-%m", date: "$placed_at" } },
           sales: { $sum: "$total_price_with_discount" },
-          revenue: { $sum: "$total_amount" },
           orderCount: { $sum: 1 },
         },
       },
@@ -83,7 +81,6 @@ export const get_chart_data = AsyncHandler(async (req, res) => {
           _id: 0,
           name: "$_id",
           sales: { $round: ["$sales", 2] },
-          revenue: { $round: ["$revenue", 2] },
           orderCount: 1,
         },
       },
@@ -137,19 +134,17 @@ export const get_chart_data = AsyncHandler(async (req, res) => {
     // Calculate totals
     const totals = mergedResults.reduce(
       (acc, curr) => {
-        acc.totalRevenue += curr.revenue;
         acc.totalCustomers += curr.customers;
         acc.totalOrders += curr.orderCount;
         return acc;
       },
-      { totalRevenue: 0, totalCustomers: 0, totalOrders: 0 }
+      { totalCustomers: 0, totalOrders: 0 }
     );
 
     res.json({
       overview: mergedResults,
       totals: {
         sales: Number(sales[0]?.sum.toFixed(2)) || 0,
-        revenue: Number(totals.totalRevenue.toFixed(2)),
         customers: totals.totalCustomers,
         orders: totals.totalOrders,
       },

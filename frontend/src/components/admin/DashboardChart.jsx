@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -13,7 +11,7 @@ import {
 } from "recharts";
 import { adminAxiosInstance } from "../../config/axiosInstance";
 
-export default function TwoLineChart() {
+export default function DashboardChart() {
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear().toString()
   );
@@ -39,7 +37,26 @@ export default function TwoLineChart() {
           month: selectedMonth !== "all" ? selectedMonth : undefined,
         },
       });
-      setChartData(response.data.overview);
+
+      let processedData;
+      if (selectedMonth === "all") {
+        // Create an array with all months, initialize with empty data
+        processedData = monthNames.map((month, index) => ({
+          name: `${selectedYear}-${(index + 1).toString().padStart(2, "0")}`,
+          sales: 0,
+          customers: 0,
+        }));
+
+        // Fill in the data we have
+        response.data.overview.forEach((item) => {
+          const monthIndex = parseInt(item.name.split("-")[1]) - 1;
+          processedData[monthIndex] = item;
+        });
+      } else {
+        processedData = response.data.overview;
+      }
+
+      setChartData(processedData);
       setTotals(response.data.totals);
       if (availableYears.length === 0) {
         const years = [
@@ -73,7 +90,7 @@ export default function TwoLineChart() {
     <div className="w-full my-16 bg-white rounded-lg shadow-md p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-800">
-          Revenue vs Customers
+          Sales vs Customers
         </h2>
         <div className="flex space-x-4">
           <select
@@ -105,49 +122,40 @@ export default function TwoLineChart() {
         </div>
       </div>
       <div className="h-64 mb-8">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart
-            data={chartData}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200" />
-            <XAxis dataKey="name" className="text-xs text-gray-600" />
-            <YAxis className="text-xs text-gray-600" />
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey="name"
+              tickFormatter={(value) => {
+                const month = parseInt(value.split("-")[1]) - 1;
+                return monthNames[month];
+              }}
+            />
+            <YAxis yAxisId="left" />
+            <YAxis yAxisId="right" orientation="right" />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "white",
-                border: "1px solid #e2e8f0",
+              labelFormatter={(value) => {
+                const [year, month] = value.split("-");
+                return `${monthNames[parseInt(month) - 1]} ${year}`;
               }}
             />
             <Legend />
-            <Line
-              type="monotone"
-              dataKey="revenue"
-              stroke="#3b82f6"
-              strokeWidth={2}
-              dot={{ r: 4 }}
-            />
-            <Line
-              type="monotone"
+            <Bar yAxisId="left" dataKey="sales" fill="#11100f" name="Sales" />
+            <Bar
+              yAxisId="right"
               dataKey="customers"
-              stroke="#f59e0b"
-              strokeWidth={2}
-              dot={{ r: 4 }}
+              fill="#10B981"
+              name="Customers"
             />
-          </LineChart>
+          </BarChart>
         </ResponsiveContainer>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div className="bg-gray-100 p-4 rounded-lg">
           <p className="text-sm font-medium text-gray-600">Total Sales</p>
           <p className="text-2xl font-bold text-gray-800">
-            ₹ {totals?.sales.toLocaleString()}
-          </p>
-        </div>
-        <div className="bg-gray-100 p-4 rounded-lg">
-          <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-          <p className="text-2xl font-bold text-gray-800">
-            ₹ {totals.revenue.toLocaleString()}
+            ₹ {totals.sales.toLocaleString()}
           </p>
         </div>
         <div className="bg-gray-100 p-4 rounded-lg">
@@ -163,35 +171,6 @@ export default function TwoLineChart() {
           </p>
         </div>
       </div>
-      {selectedMonth !== "all" && chartData.length > 0 && (
-        <div>
-          <h3 className="text-md font-semibold text-gray-800 mb-4">
-            Monthly Overview: {monthNames[parseInt(selectedMonth) - 1]}{" "}
-            {selectedYear}
-          </h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  className="stroke-gray-200"
-                />
-                <XAxis dataKey="name" className="text-xs text-gray-600" />
-                <YAxis className="text-xs text-gray-600" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "white",
-                    border: "1px solid #e2e8f0",
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="sales" fill="#3b82f6" name="Sales" />
-                <Bar dataKey="customers" fill="#f59e0b" name="Customers" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

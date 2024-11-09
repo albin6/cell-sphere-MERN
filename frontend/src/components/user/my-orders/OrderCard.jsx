@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { cancelOrder } from "../../../utils/order/orderCRUD";
 import { useOrderDetailsMutation } from "../../../hooks/CustomHooks";
 import { axiosInstance } from "../../../config/axiosInstance";
 import { FileDown, Loader2 } from "lucide-react";
+import FailedPayment from "../paypal-payment/FailedPayment";
+import { generateRandomCode } from "../../../utils/random-code/randomCodeGenerator";
 
-export default function OrderCard({ order }) {
+export default function OrderCard({ order, refetch }) {
   const navigate = useNavigate();
   const [showCancelModal, setShowCancelModal] = useState(false);
 
@@ -15,6 +17,17 @@ export default function OrderCard({ order }) {
   const [sku, setSku] = useState(null);
 
   const [generatingInvoice, setGeneratingInvoice] = useState(null);
+
+  const [isRepaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [anyRepaymentLeft, setAnyRepaymentLeft] = useState(null);
+  const [totalAmount, setTotalAmount] = useState(0);
+
+  const handleCloseRapaymentModal = (isSuccess) => {
+    setIsPaymentModalOpen(false);
+    if (isSuccess) {
+      refetch();
+    }
+  };
 
   const generateInvoice = async (orderId) => {
     console.log(orderId);
@@ -54,6 +67,13 @@ export default function OrderCard({ order }) {
     }
     setGeneratingInvoice(null);
   };
+
+  useEffect(() => {
+    const hasEligibleItems = order?.orderItems.some(
+      (item) => item?.status === "Shipped" || item?.status === "Pending"
+    );
+    setAnyRepaymentLeft(hasEligibleItems);
+  }, [order]);
 
   const handleCancelClick = () => {
     setShowCancelModal(true);
@@ -106,7 +126,7 @@ export default function OrderCard({ order }) {
       <div className="flex items-center justify-between bg-white px-4 py-3 border-t border-b">
         <p className="text-sm font-medium">
           <span className="mr-2 text-gray-600">Order #</span>
-          {order.id}
+          {generateRandomCode()}
         </p>
         <button
           onClick={() => navigate(`/profile/orders/${order.id}`)}
@@ -146,6 +166,7 @@ export default function OrderCard({ order }) {
                     )}
                 </div>
               </div>
+
               <div className="flex flex-col items-end space-y-2 sm:min-w-[120px]">
                 <div
                   className={`text-sm font-medium px-2 py-1 ${
@@ -180,6 +201,7 @@ export default function OrderCard({ order }) {
                       Cancel
                     </button>
                   )}
+
                   <button
                     onClick={() => generateInvoice(order.id)}
                     disabled={generatingInvoice === order.id}
@@ -198,7 +220,29 @@ export default function OrderCard({ order }) {
               </div>
             </div>
           ))}
+        {anyRepaymentLeft && order.paymentStatus === "Failed" && (
+          <div className="w-full flex justify-end items-center">
+            <div className="flex items-center h-11 mr-3">
+              Payment Status:{" "}
+              <span className="text-red-700">{order.paymentStatus}</span>
+            </div>
+            <button
+              onClick={() => setIsPaymentModalOpen(true)}
+              className="w-full sm:w-auto bg-red-500 text-white px-3 h-8 rounded hover:bg-red-600"
+            >
+              Retry Payment
+            </button>
+          </div>
+        )}
       </div>
+
+      {isRepaymentModalOpen && (
+        <FailedPayment
+          onClose={handleCloseRapaymentModal}
+          amount={order.total}
+          orderId={order.id}
+        />
+      )}
 
       {showCancelModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

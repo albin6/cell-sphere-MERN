@@ -17,12 +17,13 @@ import NoProductFoundUser from "./NoProductFound";
 
 export default function Wishlist() {
   const navigate = useNavigate();
-  const { data: wishlistProducts, isError, isLoading } = useWishlistProduct();
+  const { data: wishlist, isError, isLoading } = useWishlistProduct();
   const { mutate: removeProduct } =
     useWishlistProductMutation(removeFromWishlist);
   const [products, setProducts] = useState([]);
 
   const { data } = useUserProductsData(fetchProductsDetails);
+  const [wishlistProducts, setWishlistProducts] = useState([]);
 
   useEffect(() => {
     try {
@@ -32,7 +33,10 @@ export default function Wishlist() {
     }
   }, [data]);
 
-  useEffect(() => console.log(wishlistProducts), [wishlistProducts]);
+  useEffect(() => {
+    console.log(wishlistProducts);
+    setWishlistProducts(wishlist?.filter((item) => item.product));
+  }, [wishlist]);
 
   const addProductToCart = async (selectedVariant, product) => {
     try {
@@ -86,8 +90,8 @@ export default function Wishlist() {
             <Card key={product._id} className="flex items-center p-4">
               <img
                 src={`${import.meta.env.VITE_API_BASE_URL}/products/${
-                  product.product.variants.filter(
-                    (variant) => variant.sku === product.variant
+                  product?.product?.variants.filter(
+                    (variant) => variant.sku === product?.variant
                   )[0].images[0]
                 }`}
                 alt="Nothing Phone"
@@ -97,24 +101,24 @@ export default function Wishlist() {
               />
               <div className="flex-grow">
                 <h3 className="font-semibold">
-                  {product.product.name} (
+                  {product?.product?.name} (
                   {
-                    product.product.variants.filter(
-                      (variant) => variant.sku === product.variant
+                    product?.product?.variants.filter(
+                      (variant) => variant.sku === product?.variant
                     )[0].color
                   }
                   )
                 </h3>
                 <p className="text-sm text-gray-600">
                   {
-                    product.product.variants.filter(
-                      (variant) => variant.sku === product.variant
+                    product?.product?.variants.filter(
+                      (variant) => variant.sku === product?.variant
                     )[0].ram
                   }{" "}
                   RAM |{" "}
                   {
-                    product.product.variants.filter(
-                      (variant) => variant.sku === product.variant
+                    product?.product?.variants.filter(
+                      (variant) => variant.sku === product?.variant
                     )[0].storage
                   }{" "}
                   ROM
@@ -123,23 +127,23 @@ export default function Wishlist() {
                 <p className="font-bold">
                   ₹
                   {
-                    product.product.variants.filter(
-                      (variant) => variant.sku === product.variant
+                    product?.product?.variants.filter(
+                      (variant) => variant.sku === product?.variant
                     )[0].price
                   }
                 </p>
                 <p className="text-sm text-green-600">
-                  {product.product.discount}% off
+                  {product?.product?.discount}% off
                 </p>
               </div>
               <div className="flex flex-col space-y-2">
                 <Button
                   onClick={() =>
                     removeProductFromWishlist(
-                      product.product.variants.filter(
-                        (variant) => variant.sku === product.variant
+                      product?.product?.variants.filter(
+                        (variant) => variant.sku === product?.variant
                       )[0],
-                      product.product
+                      product?.product
                     )
                   }
                   variant="destructive"
@@ -150,10 +154,10 @@ export default function Wishlist() {
                 <Button
                   onClick={() =>
                     addProductToCart(
-                      product.product.variants.filter(
-                        (variant) => variant.sku === product.variant
+                      product?.product?.variants.filter(
+                        (variant) => variant.sku === product?.variant
                       )[0],
-                      product.product
+                      product?.product
                     )
                   }
                   variant="outline"
