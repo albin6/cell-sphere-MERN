@@ -3,6 +3,7 @@ import { useState } from "react";
 import { axiosInstance } from "../../../config/axiosInstance";
 import { toast } from "react-toastify";
 import PaypalCheckout from "../paypal-payment/PaypalCheckout";
+import RazorPay from "../razorpay-payment/RazorPay";
 
 const OrderSummaryModal = ({
   cart,
@@ -194,7 +195,7 @@ const OrderSummaryModal = ({
               >
                 Cancel
               </button>
-              {paymentMethod !== "Paypal" && (
+              {paymentMethod !== "Paypal" && paymentMethod !== "Razorpay" && (
                 <button
                   onClick={() => handlePlaceOrder()}
                   className="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"
@@ -222,6 +223,9 @@ const OrderSummaryModal = ({
           </div>
         )}
         <div className="mt-5">
+          {!paymentStatus && paymentMethod === "Razorpay" && (
+            <RazorPay amount={subtotal} handlePlaceOrder={handlePlaceOrder} />
+          )}
           {!paymentStatus && paymentMethod === "Paypal" && (
             <PaypalCheckout
               totalAmount={subtotal}

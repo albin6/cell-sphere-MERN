@@ -273,7 +273,7 @@ export default function CheckoutPage() {
             Select any payment methods
           </p>
 
-          {["Wallet", "Paypal", "UPI", "Cash on Delivery"].map(
+          {["Wallet", "Paypal", "Razorpay", "Cash on Delivery"].map(
             (method, index) => (
               <div key={index} className="flex items-center mb-4">
                 {method == "Cash on Delivery" && final > 15000 ? (
@@ -311,30 +311,6 @@ export default function CheckoutPage() {
                 )}
               </div>
             )
-          )}
-          {paymentMethod === "Debit Card / Credit Card" && (
-            <div className="flex space-x-2 mt-2">
-              <img
-                src="https://www.google.com/url?sa=i&url=https%3A%2F%2Fcommons.wikimedia.org%2Fwiki%2FFile%3AUPI-Logo-vector.svg&psig=AOvVaw1SiJwzbbZtHknJFR6ZmftG&ust=1729533159596000&source=images&cd=vfe&opi=89978449&ved=0CBQQjRxqFwoTCNiik6LDnYkDFQAAAAAdAAAAABAE"
-                alt="UPI"
-                className="h-5"
-              />
-              <img
-                src="https://cdn.worldvectorlogo.com/logos/visa-10.svg"
-                alt="Visa"
-                className="h-5"
-              />
-              <img
-                src="https://cdn.worldvectorlogo.com/logos/mastercard-6.svg"
-                alt="Mastercard"
-                className="h-5"
-              />
-              <img
-                src="https://cdn.worldvectorlogo.com/logos/rupay.svg"
-                alt="Rupay"
-                className="h-5"
-              />
-            </div>
           )}
         </div>
 

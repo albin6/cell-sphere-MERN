@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { axiosInstance } from "../../../config/axiosInstance";
 import { useRazorpay } from "react-razorpay";
 
-const RazorPay = ({ amount }) => {
+const RazorPay = ({ amount, handlePlaceOrder }) => {
   const { error, isLoading, Razorpay } = useRazorpay();
   const [userInfo, setUserInfo] = useState({});
 
@@ -54,9 +54,13 @@ const RazorPay = ({ amount }) => {
 
   return (
     <div>
-      {isLoading && <p>Loading Razorpay...</p>}
-      {error && <p>Error loading Razorpay: {error}</p>}
-      <button onClick={handlePayment} disabled={isLoading}>
+      {isLoading && <p className="text-center">Loading Razorpay...</p>}
+      {error && <p className="text-center">Error loading Razorpay: {error}</p>}
+      <button
+        className="py-2 bg-gray-700 text-white rounded hover:bg-gray-800 w-full"
+        onClick={handlePayment}
+        disabled={isLoading}
+      >
         Pay Now
       </button>
     </div>

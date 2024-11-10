@@ -2,6 +2,7 @@ import AsyncHandler from "express-async-handler";
 import Category from "../models/categoryModel.js";
 import Brand from "../models/brandModel.js";
 import Product from "../models/productModel.js";
+import Offer from "../models/offerModel.js";
 
 // desc => for listing products
 // GET /api/admin/products
@@ -233,6 +234,14 @@ export const add_new_product = AsyncHandler(async (req, res) => {
         .json({ success: false, message: "Category not found" });
     }
 
+    const is_category_offer_exists = await Offer.findOne({
+      target_id: category_data._id,
+    });
+
+    const offer = is_category_offer_exists
+      ? is_category_offer_exists._id
+      : null;
+
     // Create a new product instance, mapping images to their respective variants
     const newProduct = new Product({
       name,
@@ -254,6 +263,7 @@ export const add_new_product = AsyncHandler(async (req, res) => {
         sku: variant.sku,
         images: imagesByVariant[index] || [], // Attach images to their respective variant
       })),
+      offer: offer,
     });
 
     // Save the new product to the database
@@ -364,6 +374,14 @@ export const update_product_details = AsyncHandler(async (req, res) => {
     }
 
     if (product_to_update.category !== category_data._id) {
+      const is_category_offer_exists = await Offer.findOne({
+        target_id: category_data._id,
+      });
+
+      const offer = is_category_offer_exists
+        ? is_category_offer_exists._id
+        : null;
+      product_to_update.offer = offer;
       product_to_update.category = category_data._id;
       is_updated = true;
     }
@@ -506,10 +524,10 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
           specifications: product.specifications,
           _id: product._id,
           name: product.name,
-          brand: product.brand._id, // Assuming brand is populated
+          brand: product.brand._id,
           is_active: product.is_active,
           description: product.description,
-          category: product.category._id, // Assuming category is populated
+          category: product.category._id,
           price: product.price,
           discount: product.discount,
           variants: [selectedVariant],
@@ -521,13 +539,13 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
           reviews: product.reviews,
         },
         variant: selectedVariant.sku,
-        quantity: 1, // Adjust the quantity as needed or get it from the request body
+        quantity: 1,
         price: selectedVariant.price,
         discount: product.discount,
         totalPrice:
           selectedVariant.price -
           selectedVariant.price * (product.discount / 100),
-        _id: "itemIdPlaceholder", // Replace with actual item ID if available
+        _id: selectedVariant._id,
       },
     ],
     totalAmount:
