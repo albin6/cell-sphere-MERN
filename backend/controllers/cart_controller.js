@@ -17,6 +17,13 @@ export const get_cart_products = AsyncHandler(async (req, res) => {
     },
   });
 
+  // Filter items to only include those with products that are active
+  if (cart_data && cart_data.items) {
+    cart_data.items = cart_data.items.filter(
+      (item) => item.product && item.product.is_active
+    );
+  }
+
   console.log(cart_data);
 
   if (!cart_data) {

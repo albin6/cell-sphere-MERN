@@ -418,7 +418,7 @@ export const useBannersMutation = (mutationFunc) => {
 // for getting products of specific category
 export const useSpecificCategory = (id) => {
   return useQuery({
-    queryKey: ["get-product-of-specific-category"],
+    queryKey: ["get-product-of-specific-category", id],
     queryFn: () => getProductOfSpecificCategories(id),
   });
 };
