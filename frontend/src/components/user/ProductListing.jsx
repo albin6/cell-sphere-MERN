@@ -13,6 +13,7 @@ import ProductListingShimmer from "../ui/ProductListingShimmer";
 import { useNavigate } from "react-router-dom";
 import { searchContext } from "../../context/Search";
 import NoProductForTheSearch from "./NoProductForTheSearch";
+import ProductRatingInCard from "./ProductRatingInCard";
 
 export default function ProductListing() {
   const { searchTerm } = useContext(searchContext);
@@ -321,18 +322,7 @@ export default function ProductListing() {
                       <h3 className="font-semibold text-base sm:text-lg mb-2 line-clamp-2">
                         {product.name}
                       </h3>
-                      <div className="flex items-center mb-2">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 sm:h-5 sm:w-5 ${
-                              i < product.rating
-                                ? "text-yellow-400 fill-yellow-400"
-                                : "text-gray-300"
-                            }`}
-                          />
-                        ))}
-                      </div>
+                      <ProductRatingInCard product={product} />
                     </div>
                     <div>
                       <div className="flex items-center justify-between">

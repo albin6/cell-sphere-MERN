@@ -4,6 +4,10 @@ import { useNavigate } from "react-router-dom";
 function ProductCard({ product }) {
   const navigate = useNavigate();
 
+  const averageRating =
+    product?.reviews.reduce((acc, review) => acc + review.rating, 0) /
+    (product?.reviews.length || 1);
+
   return (
     <div
       className="bg-white shadow-lg rounded-lg overflow-hidden cursor-pointer transition-transform duration-300 hover:scale-105"
@@ -25,7 +29,9 @@ function ProductCard({ product }) {
         </h2>
         <div className="flex items-center mb-2">
           <span className="text-yellow-500 mr-1">★</span>
-          <span className="text-gray-600 text-xs sm:text-sm">2.8 (4)</span>
+          <span className="text-gray-600 text-xs sm:text-sm">
+            {averageRating} ({product?.reviews.length})
+          </span>
         </div>
         <div className="flex flex-wrap items-baseline mb-2">
           <span className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">

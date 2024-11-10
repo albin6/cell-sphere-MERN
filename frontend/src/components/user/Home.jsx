@@ -100,9 +100,11 @@ function Home() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 sm:gap-8">
             {products &&
-              products.map((product) => (
-                <ProductCard key={product._id} product={product} />
-              ))}
+              products
+                .slice(0, 10)
+                .map((product) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
           </div>
         </section>
 
