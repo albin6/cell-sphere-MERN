@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "../../components/user/Header";
-import ForgotPasswordFlow from "../../components/user/Profile/ForgotPasswordFlow";
+import ForgotPasswordFlow from "../../components/user/profile/ForgotPasswordFlow";
 
 function ResetPassword() {
   return (

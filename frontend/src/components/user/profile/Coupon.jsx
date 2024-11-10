@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
-import { Scissors, Copy, Check } from "lucide-react";
+import { Scissors, Copy, Check, ArrowRightCircle } from "lucide-react";
 import { useAllCoupons } from "../../../hooks/CustomHooks";
 import { getAllCouponsUser } from "../../../utils/coupon/couponCRUD";
 import Pagination from "../Pagination";
 import NoCouponFound from "./NoCouponFound";
 
 export default function Coupon() {
-  const [coupons, setCoupons] = useState([]);
-
   const [copiedCode, setCopiedCode] = useState("");
-
+  const [coupons, setCoupons] = useState([]);
   const itemsPerPage = 4;
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,9 +43,6 @@ export default function Coupon() {
     return <h2>Loading...</h2>;
   }
 
-  if (noCouponFound) {
-  }
-
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
@@ -79,7 +74,27 @@ export default function Coupon() {
                       {new Date(coupon.expiration_date).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-gray-600 mb-4">{coupon.description}</p>
+                  <div className="flex justify-between mb-3">
+                    <span className="text-gray-600 mb-4">
+                      {coupon.description}
+                    </span>
+                    <div>
+                      <span className="text-base underline">
+                        Eligible Categories
+                      </span>
+                      <ul className="flex flex-col items-end">
+                        {coupon.eligible_categories.map((ec) => (
+                          <li
+                            className="text-base font-light flex items-center"
+                            key={ec._id}
+                          >
+                            <ArrowRightCircle className="w-4 h-4 mr-1" />{" "}
+                            {ec.title}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                   <div className="flex items-center justify-between bg-gray-100 rounded-md p-3">
                     <code className="text-sm font-mono text-primary">
                       {coupon.code}

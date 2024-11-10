@@ -123,10 +123,24 @@ export const get_coupons_user = AsyncHandler(async (req, res) => {
   const totalPages = Math.ceil(totalCoupons / limit);
 
   // Fetch the coupons with pagination
-  const coupons = await Coupon.find({ is_active: true })
+  const coupons_data = await Coupon.find({ is_active: true })
+    .populate("eligible_categories")
     .skip(skip)
     .limit(limit)
     .exec();
+
+  const coupons = coupons_data.map((c) => ({
+    _id: c._id,
+    discount_value: c.discount_value,
+    discount_type: c.discount_type,
+    expiration_date: c.expiration_date,
+    description: c.description,
+    code: c.code,
+    eligible_categories: c.eligible_categories.map((ec) => ({
+      _id: ec._id,
+      title: ec.title,
+    })),
+  }));
 
   res.status(200).json({
     coupons,

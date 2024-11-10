@@ -10,12 +10,13 @@ import {
   addNewAddress,
   updateUserAddress,
 } from "../../../utils/address/addressCRUD";
-import AddEditAddressModal from "../Address/AddEditAddressModal";
+import AddEditAddressModal from "../address/AddEditAddressModal";
 import OrderSummaryModal from "../my-orders/OrderSummaryModal";
 import { toast } from "react-toastify";
 import { useLocation, useNavigate } from "react-router-dom";
 import Paypal from "../paypal-payment/Paypal";
 import { applyCoupon } from "../../../utils/coupon/couponCRUD";
+import AvailableCouponModal from "./AvailableCouponModal";
 
 const useQueryParams = () => {
   return new URLSearchParams(useLocation().search);
@@ -52,6 +53,10 @@ export default function CheckoutPage() {
   const [editingAddress, setEditingAddress] = useState(null);
   const [eligibleProducts, setEligibleProducts] = useState(null);
   const [code, setCode] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const openModal = () => setIsOpen(true);
+  const closeModal = () => setIsOpen(false);
 
   const [isCouponApplied, setIsCouponApplied] = useState(false);
   const [amountAfterApplyingCoupon, setAmountAfterApplyingCoupon] =
@@ -370,7 +375,9 @@ export default function CheckoutPage() {
                       pro.message === "Coupon applied successfully"
                   ) && <span className="text-green-800">Coupon Applied</span>}
                 <span>
-                  ₹{item.price} x {item.quantity}
+                  ₹
+                  {(item.price - (item.price * item.discount) / 100).toFixed(2)}{" "}
+                  x {item.quantity}
                 </span>
               </div>
             ))}
@@ -469,20 +476,28 @@ export default function CheckoutPage() {
               Apply Coupon
             </button>
           </div>
+          <div className="flex justify-end mt-5">
+            <button
+              onClick={openModal}
+              className="w-full py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none "
+            >
+              View Coupons
+            </button>
+          </div>
           {productId ? (
             (!isCouponApplied
               ? Number(cart?.totalAmount).toFixed(2)
               : Number(amountAfterApplyingCoupon).toFixed(2)) == 0 ? (
               <button
                 disabled={true}
-                className="w-full opacity-50 bg-gray-800 text-white py-3 rounded mt-8 hover:bg-gray-700 transition-colors"
+                className="w-full opacity-50 bg-gray-800 text-white py-3 rounded mt-5 hover:bg-gray-700 transition-colors"
               >
                 Place Order
               </button>
             ) : (
               <button
                 onClick={handlePlaceOrder}
-                className="w-full bg-gray-800 text-white py-3 rounded mt-8 hover:bg-gray-700 transition-colors"
+                className="w-full bg-gray-800 text-white py-3 rounded mt-5 hover:bg-gray-700 transition-colors"
               >
                 Place Order
               </button>
@@ -492,20 +507,21 @@ export default function CheckoutPage() {
               : amountAfterApplyingCoupon.toFixed(2)) == 0 ? (
             <button
               disabled={true}
-              className="w-full opacity-50 bg-gray-800 text-white py-3 rounded mt-8 hover:bg-gray-700 transition-colors"
+              className="w-full opacity-50 bg-gray-800 text-white py-3 rounded mt-5 hover:bg-gray-700 transition-colors"
             >
               Place Order
             </button>
           ) : (
             <button
               onClick={handlePlaceOrder}
-              className="w-full bg-gray-800 text-white py-3 rounded mt-8 hover:bg-gray-700 transition-colors"
+              className="w-full bg-gray-800 text-white py-3 rounded mt-5 hover:bg-gray-700 transition-colors"
             >
               Place Order
             </button>
           )}
         </div>
       </div>
+      {isOpen && <AvailableCouponModal closeModal={closeModal} />}
       {isAddressModalOpen && (
         <AddEditAddressModal
           address={editingAddress}

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import ProfileSidebar from "./ProfileSidebar";
 import ProfileTab from "./ProfileTab";
-import AddressBookTab from "../Address/AddressBookTab";
+import AddressBookTab from "../address/AddressBookTab";
 import Orders from "../my-orders/Orders";
 import { axiosInstance } from "../../../config/axiosInstance";
-import { toast } from "react-toastify";
 import Wallet from "./Wallet";
 import Coupon from "./Coupon";
 import Referral from "./Referral";
