@@ -120,6 +120,8 @@ export default function OfferModule() {
           toast.success("Offer Added Successfully!", {
             position: "top-center",
           }),
+        onError: (error) =>
+          toast.error(error.response.data.message, { position: "top-center" }),
       });
       event.currentTarget.reset();
       setSelectedProduct(null);
