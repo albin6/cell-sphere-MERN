@@ -38,7 +38,6 @@ export const get_products_details = AsyncHandler(async (req, res) => {
       break;
   }
 
-  // Fetch all products with populated category and brand details
   const products =
     filter == "All"
       ? await Product.find()
@@ -54,7 +53,6 @@ export const get_products_details = AsyncHandler(async (req, res) => {
           .skip(skip)
           .limit(limit);
 
-  // Fetch all categories
   const categories = await Category.find({ status: true });
   if (!categories) {
     return res
@@ -62,7 +60,6 @@ export const get_products_details = AsyncHandler(async (req, res) => {
       .json({ success: false, message: "Failed to fetch categories" });
   }
 
-  // Fetch all brands
   const brands = await Brand.find({ status: true });
   if (!brands) {
     return res
@@ -70,7 +67,6 @@ export const get_products_details = AsyncHandler(async (req, res) => {
       .json({ success: false, message: "Failed to fetch brands" });
   }
 
-  // If everything is successful, return the data
   res
     .status(200)
     .json({ success: true, page, totalPages, products, brands, categories });
@@ -87,7 +83,6 @@ export const get_product_data_for_product_crud = AsyncHandler(
         .json({ success: false, message: "Failed to fetch categories" });
     }
 
-    // Fetch all brands
     const brands = await Brand.find({ status: true });
     if (!brands) {
       return res
@@ -102,7 +97,6 @@ export const get_product_data_for_product_crud = AsyncHandler(
 // GET /api/users/products
 export const get_all_products_details = AsyncHandler(async (req, res) => {
   try {
-    // Fetch all products with populated category and brand details
     const products_data = await Product.find({ is_active: true })
       .populate("offer")
       .populate("category")
@@ -110,7 +104,6 @@ export const get_all_products_details = AsyncHandler(async (req, res) => {
 
     const products = products_data.filter((product) => product.category.status);
 
-    // Fetch all categories
     const categories = await Category.find({ status: true });
     if (!categories) {
       return res
@@ -118,7 +111,6 @@ export const get_all_products_details = AsyncHandler(async (req, res) => {
         .json({ success: false, message: "Failed to fetch categories" });
     }
 
-    // Fetch all brands
     const brands = await Brand.find({ status: true });
     if (!brands) {
       return res
@@ -126,7 +118,6 @@ export const get_all_products_details = AsyncHandler(async (req, res) => {
         .json({ success: false, message: "Failed to fetch brands" });
     }
 
-    // Check if products exist
     if (!products.length) {
       return res.status(200).json({
         success: true,
@@ -137,10 +128,8 @@ export const get_all_products_details = AsyncHandler(async (req, res) => {
       });
     }
 
-    // If everything is successful, return the data
     res.status(200).json({ success: true, products, brands, categories });
   } catch (error) {
-    // Catch any other errors and return a 500 status code
     console.error("Error fetching product details:", error);
     res.status(500).json({
       success: false,
@@ -161,7 +150,6 @@ export const get_product = AsyncHandler(async (req, res) => {
     .populate("category")
     .populate("brand");
 
-  // Fetch all categories
   const categories = await Category.find({ status: true });
   if (!categories) {
     return res
@@ -169,7 +157,6 @@ export const get_product = AsyncHandler(async (req, res) => {
       .json({ success: false, message: "Failed to fetch categories" });
   }
 
-  // Fetch all brands
   const brands = await Brand.find({ status: true });
   if (!brands) {
     return res
@@ -204,10 +191,8 @@ export const add_new_product = AsyncHandler(async (req, res) => {
     variants,
   } = req.body;
 
-  // Create an object to map images to their respective variants
   const imagesByVariant = {};
 
-  // Handle file uploads
   if (req.files && req.files.length > 0) {
     req.files.forEach((file) => {
       const variantId = file.fieldname.split("[")[1].split("]")[0];
@@ -219,7 +204,6 @@ export const add_new_product = AsyncHandler(async (req, res) => {
   }
 
   try {
-    // Fetch brand and category information from the database
     const brand_data = await Brand.findOne({ name: brand });
     if (!brand_data) {
       return res
@@ -242,7 +226,6 @@ export const add_new_product = AsyncHandler(async (req, res) => {
       ? is_category_offer_exists._id
       : null;
 
-    // Create a new product instance, mapping images to their respective variants
     const newProduct = new Product({
       name,
       brand: brand_data._id,
@@ -261,15 +244,13 @@ export const add_new_product = AsyncHandler(async (req, res) => {
         price: Number(variant.price),
         stock: Number(variant.stock),
         sku: variant.sku,
-        images: imagesByVariant[index] || [], // Attach images to their respective variant
+        images: imagesByVariant[index] || [],
       })),
       offer: offer,
     });
 
-    // Save the new product to the database
     const savedProduct = await newProduct.save();
 
-    // Send a success response
     res.status(201).json({
       success: true,
       message: "Product added successfully",
@@ -288,9 +269,7 @@ export const add_new_product = AsyncHandler(async (req, res) => {
 // PUT /api/admin/products/:producId
 export const update_product_details = AsyncHandler(async (req, res) => {
   console.log("in update product details controller");
-  // console.log(req.body);
   const productId = req.params.productId;
-  // console.log(productId);
 
   const {
     name,
@@ -306,17 +285,10 @@ export const update_product_details = AsyncHandler(async (req, res) => {
     variants,
   } = req.body.data;
 
-  // console.log("Brand =>", brand, "category =>", category);
-
-  // Create an object to map images to their respective variants
-
   const imagesByVariant = {};
 
-  // Handle file uploads
   if (req.files && req.files.length > 0) {
     req.files.forEach((file) => {
-      // Remove "data" from the beginning of each fieldname
-
       const variantId = file.fieldname.split("[")[2].split("]")[0];
       if (!imagesByVariant[variantId]) {
         imagesByVariant[variantId] = [];
@@ -324,12 +296,6 @@ export const update_product_details = AsyncHandler(async (req, res) => {
       imagesByVariant[variantId].push(file.path.split("/").pop());
     });
   }
-
-  // console.log("req.files==>", req.files);
-
-  // console.log(imagesByVariant);
-
-  // console.log("onee");
 
   try {
     const product_to_update = await Product.findById(productId);
@@ -340,7 +306,6 @@ export const update_product_details = AsyncHandler(async (req, res) => {
         .json({ success: false, message: "Product not found" });
     }
 
-    // Fetch brand and category information from the database
     const brand_data = await Brand.findOne({ name: brand });
     console.log("brand data =>", brand_data);
     if (!brand_data) {
@@ -403,18 +368,13 @@ export const update_product_details = AsyncHandler(async (req, res) => {
       product_to_update.isFeatured = isFeatured;
     }
 
-    const newImages = req.files.map((file) => file.filename); // or file.originalname if you want the original name
+    const newImages = req.files.map((file) => file.filename);
 
-    // console.log("new images from multer =>", newImages);
-
-    // If variants is an array, loop through and merge images
     product_to_update.variants = product_to_update.variants = variants.map(
       (variant, index) => {
-        // Extract existing images from the variant's images
         let existingImages = (variant.images || []).map((img) => {
-          // Extract the image name from the 'preview' URL
-          const urlParts = img.preview.split("/"); // Split the URL by "/"
-          return urlParts[urlParts.length - 1]; // Get the last part of the URL (image name)
+          const urlParts = img.preview.split("/");
+          return urlParts[urlParts.length - 1];
         });
 
         existingImages = existingImages.filter(
@@ -422,8 +382,7 @@ export const update_product_details = AsyncHandler(async (req, res) => {
         );
         console.log("existing images =>", existingImages);
 
-        // Combine existing images with new images for the current variant
-        const newImagesForVariant = imagesByVariant[index] || []; // Get new images for the specific variant
+        const newImagesForVariant = imagesByVariant[index] || [];
         console.log("new image by variant", index, "==>", newImagesForVariant);
 
         return {
@@ -433,19 +392,16 @@ export const update_product_details = AsyncHandler(async (req, res) => {
           price: Number(variant.price),
           stock: Number(variant.stock),
           sku: variant.sku,
-          images: [...existingImages, ...newImagesForVariant], // Combine existing and new image names
+          images: [...existingImages, ...newImagesForVariant],
         };
       }
     );
 
-    // Save the new product to the database
     await product_to_update.save();
     console.log("updated product ==>", product_to_update);
 
-    // If everything is successful, return the data
     res.status(200).json({ success: true, product_to_update, brand, category });
   } catch (error) {
-    // Catch any other errors and return a 500 status code
     console.error("Error fetching product details:", error);
     res.status(500).json({
       success: false,
@@ -494,11 +450,10 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
     });
   }
 
-  // Find the product by ID
   const product = await Product.findById(productId)
     .populate("offer")
-    .populate("brand") // Assuming you want the name of the brand to be populated
-    .populate("category") // Assuming you want the name of the category to be populated
+    .populate("brand")
+    .populate("category")
     .exec();
 
   if (!product) {
@@ -507,7 +462,6 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
       .json({ success: false, message: "Product not found." });
   }
 
-  // Find the specific variant inside the product
   const selectedVariant = product.variants.find((v) => v.sku === variant);
 
   if (!selectedVariant) {
@@ -516,7 +470,6 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
       .json({ success: false, message: "Variant not found." });
   }
 
-  // Format the response
   const cartData = {
     items: [
       {
@@ -537,6 +490,7 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
           createdAt: product.createdAt,
           updatedAt: product.updatedAt,
           reviews: product.reviews,
+          offer: product.offer,
         },
         variant: selectedVariant.sku,
         quantity: 1,
@@ -544,7 +498,10 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
         discount: product.discount,
         totalPrice:
           selectedVariant.price -
-          selectedVariant.price * (product.discount / 100),
+          selectedVariant.price *
+            ((product.discount +
+              (product.offer?.offer_value ? product.offer?.offer_value : 0)) /
+              100),
         _id: selectedVariant._id,
       },
     ],
@@ -556,7 +513,6 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
           100),
   };
 
-  // Return the response
   res.status(200).json({
     success: true,
     cart_data: cartData,
@@ -569,7 +525,6 @@ export const get_products_for_offers = AsyncHandler(async (req, res) => {
   console.log("in get_products_for_offers");
   const { searchTerm } = req.query;
 
-  // Fetch all products from the database
   const products = await Product.find(
     { name: { $regex: new RegExp(searchTerm, "i") }, is_active: true },
     { name: true }

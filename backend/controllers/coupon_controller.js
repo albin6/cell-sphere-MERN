@@ -238,7 +238,7 @@ export const apply_coupon = AsyncHandler(async (req, res) => {
 
     // Check if the product category is eligible for the coupon
     const isCategoryEligible = coupon.eligible_categories.some(
-      (categoryId) => categoryId.toString() === id
+      (categoryId) => categoryId.toString() === id._id || id
     );
 
     if (!isCategoryEligible) {

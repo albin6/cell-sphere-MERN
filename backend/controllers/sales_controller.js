@@ -375,9 +375,12 @@ export const generate_order_invoice = AsyncHandler(async (req, res) => {
                 item.product.name,
                 item.variant,
                 item.quantity.toString(),
-                `₹${item.price.toFixed(2)}`,
-                `${item.discount}%`,
-                `₹${item.total_price.toFixed(2)}`,
+                `RS :${item.price.toFixed(2)}`,
+                `${(
+                  ((item.price - item.total_price) / item.price) *
+                  100
+                ).toFixed(0)}%`,
+                `RS :${item.total_price.toFixed(2)}`,
                 { text: item.order_status, bold: true },
               ]),
             ],
@@ -404,21 +407,14 @@ export const generate_order_invoice = AsyncHandler(async (req, res) => {
                   [
                     "Subtotal:",
                     {
-                      text: `₹${order.total_amount.toFixed(2)}`,
+                      text: `RS :${order.total_amount.toFixed(2)}`,
                       alignment: "right",
                     },
                   ],
                   [
                     "Shipping Fee:",
                     {
-                      text: `₹${order.shipping_fee.toFixed(2)}`,
-                      alignment: "right",
-                    },
-                  ],
-                  [
-                    "Total Discount:",
-                    {
-                      text: `₹${order.total_discount.toFixed(2)}`,
+                      text: `RS :${order.shipping_fee.toFixed(2)}`,
                       alignment: "right",
                     },
                   ],
@@ -427,7 +423,7 @@ export const generate_order_invoice = AsyncHandler(async (req, res) => {
                         [
                           "Coupon Discount:",
                           {
-                            text: `₹${order.coupon_discount.toFixed(2)}`,
+                            text: `RS :${order.coupon_discount.toFixed(2)}`,
                             alignment: "right",
                           },
                         ],
@@ -436,7 +432,7 @@ export const generate_order_invoice = AsyncHandler(async (req, res) => {
                   [
                     { text: "Total:", bold: true },
                     {
-                      text: `₹${order.total_price_with_discount.toFixed(2)}`,
+                      text: `RS :${order.total_price_with_discount.toFixed(2)}`,
                       bold: true,
                       alignment: "right",
                     },

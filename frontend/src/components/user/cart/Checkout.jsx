@@ -73,7 +73,9 @@ export default function CheckoutPage() {
     setAddresses(profileAddress?.addresses);
   }, [profileAddress]);
 
-  useEffect(() => {}, [cart]);
+  useEffect(() => {
+    console.log("this is cart ======>", cart);
+  }, [cart]);
 
   useEffect(() => {
     if (productId) {
@@ -126,7 +128,6 @@ export default function CheckoutPage() {
       code: couponCode,
     }));
     setCode(couponCode);
-    console.log("category ids set", categoryIds);
 
     applyCoupon(categoryIds)
       .then((data) => {
@@ -182,6 +183,12 @@ export default function CheckoutPage() {
     setAmountAfterApplyingCoupon(null);
     setAppliedCoupon(null);
   };
+
+  useEffect(() => {
+    if (eligibleProducts) {
+      console.log(eligibleProducts);
+    }
+  }, [eligibleProducts]);
 
   const final = productId
     ? !isCouponApplied
@@ -347,14 +354,22 @@ export default function CheckoutPage() {
                 {eligibleProducts &&
                   eligibleProducts.some(
                     (pro) =>
-                      item.product.category === pro.id &&
+                      item.product.category._id == pro.id._id &&
                       pro.message === "Coupon applied successfully"
                   ) && <span className="text-green-800">Coupon Applied</span>}
-                <span>
-                  ₹
-                  {(item.price - (item.price * item.discount) / 100).toFixed(2)}{" "}
-                  x {item.quantity}
-                </span>
+                {productId ? (
+                  <span>
+                    ₹{item.totalPrice.toFixed(2)} x {item.quantity}
+                  </span>
+                ) : (
+                  <span>
+                    ₹
+                    {(item.price - (item.price * item.discount) / 100).toFixed(
+                      2
+                    )}{" "}
+                    x {item.quantity}
+                  </span>
+                )}
               </div>
             ))}
 
@@ -371,11 +386,15 @@ export default function CheckoutPage() {
               {isCouponApplied && (
                 <>
                   <div className="flex justify-between mb-2">
-                    <span>Coupon:</span>
-                    <span>{amountAfterApplyingCoupon.toFixed(2)}</span>
+                    <span>Amount after applying coupon:</span>
+                    <span>
+                      {(
+                        Number(cart?.totalAmount) - discountAfterApplyingCoupon
+                      ).toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between mb-2">
-                    <span>Discount:</span>
+                    <span>Coupon discount:</span>
                     <span>-₹{discountAfterApplyingCoupon.toFixed(2)}</span>
                   </div>
                 </>
@@ -386,7 +405,9 @@ export default function CheckoutPage() {
                   ₹
                   {!isCouponApplied
                     ? Number(cart?.totalAmount).toFixed(2)
-                    : Number(amountAfterApplyingCoupon).toFixed(2)}
+                    : (
+                        Number(cart?.totalAmount) - discountAfterApplyingCoupon
+                      ).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -403,11 +424,13 @@ export default function CheckoutPage() {
               {isCouponApplied && (
                 <>
                   <div className="flex justify-between mb-2">
-                    <span>Coupon:</span>
-                    <span>{amountAfterApplyingCoupon.toFixed(2)}</span>
+                    <span>Amount after applying coupon:</span>
+                    <span>
+                      {(total - discountAfterApplyingCoupon).toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between mb-2">
-                    <span>Discount:</span>
+                    <span>Coupon iscount:</span>
                     <span>-₹{discountAfterApplyingCoupon.toFixed(2)}</span>
                   </div>
                 </>
@@ -416,9 +439,10 @@ export default function CheckoutPage() {
                 <span>Total:</span>
                 <span>
                   ₹
-                  {!isCouponApplied
+                  {(!isCouponApplied
                     ? total.toFixed(2)
-                    : amountAfterApplyingCoupon.toFixed(2)}
+                    : total - discountAfterApplyingCoupon
+                  ).toFixed(2)}
                 </span>
               </div>
             </div>
@@ -463,7 +487,8 @@ export default function CheckoutPage() {
           {productId ? (
             (!isCouponApplied
               ? Number(cart?.totalAmount).toFixed(2)
-              : Number(amountAfterApplyingCoupon).toFixed(2)) == 0 ? (
+              : Number(cart?.totalAmount) -
+                discountAfterApplyingCoupon.toFixed(2)) == 0 ? (
               <button
                 disabled={true}
                 className="w-full opacity-50 bg-gray-800 text-white py-3 rounded mt-5 hover:bg-gray-700 transition-colors"
@@ -480,7 +505,7 @@ export default function CheckoutPage() {
             )
           ) : (!isCouponApplied
               ? total.toFixed(2)
-              : amountAfterApplyingCoupon.toFixed(2)) == 0 ? (
+              : total - discountAfterApplyingCoupon.toFixed(2)) == 0 ? (
             <button
               disabled={true}
               className="w-full opacity-50 bg-gray-800 text-white py-3 rounded mt-5 hover:bg-gray-700 transition-colors"
@@ -517,7 +542,11 @@ export default function CheckoutPage() {
             shipping={shipping}
             coupon={discountAfterApplyingCoupon}
             code={code}
-            total={isCouponApplied ? amountAfterApplyingCoupon : total}
+            total={
+              !isCouponApplied
+                ? total.toFixed(2)
+                : (total - discountAfterApplyingCoupon).toFixed(2)
+            }
             paymentMethod={paymentMethod}
             selectedAddress={addresses[selectedAddress]}
             onPlace={(orderId) => {
@@ -533,13 +562,21 @@ export default function CheckoutPage() {
             <OrderSummaryModal
               cart={cart}
               subtotal={
-                isCouponApplied ? amountAfterApplyingCoupon : cart?.totalAmount
+                !isCouponApplied
+                  ? Number(cart?.totalAmount).toFixed(2)
+                  : (
+                      Number(cart?.totalAmount) - discountAfterApplyingCoupon
+                    ).toFixed(2)
               }
               shipping={shipping}
               coupon={discountAfterApplyingCoupon}
               code={code}
               total={
-                isCouponApplied ? amountAfterApplyingCoupon : cart?.totalAmount
+                !isCouponApplied
+                  ? Number(cart?.totalAmount).toFixed(2)
+                  : (
+                      Number(cart?.totalAmount) - discountAfterApplyingCoupon
+                    ).toFixed(2)
               }
               paymentMethod={paymentMethod}
               selectedAddress={addresses[selectedAddress]}

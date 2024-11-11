@@ -12,16 +12,43 @@ export const get_cart_products = AsyncHandler(async (req, res) => {
 
   const cart_data = await Cart.findOne({ user: user_id }).populate({
     path: "items.product",
-    populate: {
-      path: "offer",
-    },
+    populate: [
+      {
+        path: "offer",
+      },
+      {
+        path: "category",
+      },
+    ],
   });
 
-  // Filter items to only include those with products that are active
   if (cart_data && cart_data.items) {
     cart_data.items = cart_data.items.filter(
-      (item) => item.product && item.product.is_active
+      (item) =>
+        item.product && item.product.is_active && item.product.category.status
     );
+  }
+
+  if (cart_data && cart_data.items) {
+    cart_data.items = cart_data.items.map((item) => {
+      return {
+        ...item,
+        discount:
+          item.discount +
+          (item.product?.offer?.offer_value
+            ? item.product?.offer?.offer_value
+            : 0),
+        totalPrice:
+          item.quantity *
+          (item.price -
+            (item.price *
+              (item.discount +
+                (item.product?.offer?.offer_value
+                  ? item.product?.offer?.offer_value
+                  : 0))) /
+              100),
+      };
+    });
   }
 
   console.log(cart_data);
@@ -48,27 +75,18 @@ export const add_product_to_cart = AsyncHandler(async (req, res) => {
 
     console.log(price);
 
-    console.log((price * discount) / 100);
-    const discountAmount =
-      (price * (discount + (offer?.offer_value ? offer.offer_value : 0))) / 100;
-    const totalPrice = price - discountAmount;
-
-    console.log(totalPrice);
-
-    // Create cart item
     const cartItem = {
       product: req.body.product._id,
       variant: sku,
       quantity,
       price,
-      discount: discount + (offer?.offer_value ? offer.offer_value : 0),
-      totalPrice,
+      discount: discount,
+      totalPrice: quantity * price,
     };
 
     let cart = await Cart.findOne({ user: user_id });
 
     if (!cart) {
-      // Create a new cart if it doesn't exist
       cart = new Cart({
         user: user_id,
         items: [cartItem],
@@ -85,11 +103,9 @@ export const add_product_to_cart = AsyncHandler(async (req, res) => {
           .status(400)
           .json({ success: false, message: "Product already in Cart" });
       }
-      // Add item to existing cart
       cart.items.push(cartItem);
     }
 
-    // Save the cart
     await cart.save();
     console.log("Product added to cart successfully:", cart);
 
@@ -116,7 +132,6 @@ export const check_product_variant_in_cart = AsyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: "Cart not found" });
   }
 
-  // Ensure product_id is a valid ObjectId
   const productObjectId = new mongoose.Types.ObjectId(product_id);
 
   const cart_item = cart_data.items.find(
@@ -182,7 +197,6 @@ export const delete_product = AsyncHandler(async (req, res) => {
       return acc + item.totalPrice;
     }, 0);
 
-    // Step 3: Update the cart with the new totalAmount
     await cart.save();
   }
 

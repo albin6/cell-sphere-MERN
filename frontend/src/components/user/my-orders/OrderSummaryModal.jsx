@@ -167,7 +167,7 @@ const OrderSummaryModal = ({
             <div className="border-t mt-4 pt-4">
               <p className="flex justify-between">
                 <span>Subtotal:</span>
-                <span>₹{subtotal.toFixed(2)}</span>
+                <span>₹{Number(subtotal).toFixed(2)}</span>
               </p>
               <p className="flex justify-between">
                 <span>Shipping:</span>
@@ -181,7 +181,7 @@ const OrderSummaryModal = ({
               )}
               <p className="flex justify-between font-bold mt-2">
                 <span>Total:</span>
-                <span>₹{total.toFixed(2)}</span>
+                <span>₹{Number(total).toFixed(2)}</span>
               </p>
             </div>
             <div className="mt-4">

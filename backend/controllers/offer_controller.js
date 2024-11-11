@@ -11,7 +11,6 @@ export const get_all_offers = AsyncHandler(async (req, res) => {
 
   const skip = (page - 1) * limit;
 
-  // Fetch all offers from the database
   const offers = await Offer.find({}).skip(skip).limit(limit);
 
   const offers_count = await Offer.countDocuments();
@@ -31,17 +30,14 @@ export const add_new_offer = AsyncHandler(async (req, res) => {
   const is_offer_already_exists = await Offer.findOne({ target_id: targetId });
 
   if (is_offer_already_exists) {
-    return res
-      .status(409)
-      .json({
-        success: false,
-        message: `Offer is alreay existing for the ${
-          target == "product" ? "product" : "category"
-        }`,
-      });
+    return res.status(409).json({
+      success: false,
+      message: `Offer is alreay existing for the ${
+        target == "product" ? "product" : "category"
+      }`,
+    });
   }
 
-  // Create a new offer
   const new_offer = await Offer.create({
     name,
     offer_value: value,

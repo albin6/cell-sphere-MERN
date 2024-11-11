@@ -317,7 +317,11 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
                         Price: ₹{o.total_price}{" "}
                         <span className="text-sm text-green-800 font-semibold">
                           <strike className=" text-red-800">₹{o.price}</strike>{" "}
-                          {o.discount}%
+                          {(
+                            ((o.price - o.total_price) / o.price) *
+                            100
+                          ).toFixed(0)}
+                          %
                         </span>
                       </p>
                     </div>
