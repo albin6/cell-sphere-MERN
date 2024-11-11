@@ -75,133 +75,152 @@ export const place_order = AsyncHandler(async (req, res) => {
   console.log(order_data);
   console.log("===================================");
 
-  if (is_coupon_applied) {
-    const coupon = await Coupon.findOne({ code });
+  let is_any_product_is_stockout = false;
 
-    if (!coupon) {
-      return res.status(404).json({ message: "Coupon not found" });
-    }
+  for (const item of order_data.order_items) {
+    const { product, variant, quantity } = item;
 
-    const appliedUser = coupon.users_applied.find(
-      (entry) => entry.user.toString() === req.user.id
-    );
+    const product_data = await Product.findById(product);
 
-    if (appliedUser) {
-      await Coupon.updateOne(
-        { code, "users_applied.user": req.user.id },
-        { $inc: { "users_applied.$.used_count": 1 } }
-      );
-    } else {
-      await Coupon.updateOne(
-        { code },
-        {
-          $push: {
-            users_applied: {
-              user: req.user.id,
-              used_count: 1,
-            },
-          },
-        }
-      );
-    }
-  }
+    if (product_data) {
+      const variant_data = product_data.variants.find((v) => v.sku === variant);
 
-  const new_order = new Order({ ...order_data, user: req.user.id });
-
-  if (order_data.payment_method === "Wallet") {
-    let wallet_exists = await Wallet.findOne({ user: req.user.id });
-    console.log(wallet_exists);
-
-    if (wallet_exists) {
-      if (!(wallet_exists.balance >= new_order.total_price_with_discount)) {
+      if (variant_data && variant_data.stock < quantity) {
+        is_any_product_is_stockout = true;
         return res.status(400).json({
-          message: "Insufficient balance in your wallet",
+          success: false,
+          message: `Not enough stock for variant: ${variant}`,
         });
       }
-      wallet_exists.balance -= new_order.total_price_with_discount;
-
-      const transaction = {
-        order_id: new_order._id,
-        transaction_date: new Date(),
-        transaction_type: "debit",
-        transaction_status: "completed",
-        amount: new_order.total_price_with_discount * -1,
-      };
-
-      wallet_exists.transactions.push(transaction);
-
-      await wallet_exists.save();
-    } else {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Insufficient balance in your wallet. Please add balance first.",
-      });
     }
   }
 
-  if (new_order) {
-    // Loop through each order item to update the stock
-    for (const item of order_data.order_items) {
-      const { product, variant, quantity } = item;
-      await Product.findByIdAndUpdate(
-        product,
-        { $inc: { quantity_sold: quantity } },
-        { new: true, runValidators: true }
-      );
-      // Find the product by ID
-      const product_data = await Product.findById(product);
+  if (!is_any_product_is_stockout) {
+    if (is_coupon_applied) {
+      const coupon = await Coupon.findOne({ code });
 
-      if (product_data) {
-        // Find the specific variant within the product's variants array
-        const variant_data = product_data.variants.find(
-          (v) => v.sku === variant
+      if (!coupon) {
+        return res.status(404).json({ message: "Coupon not found" });
+      }
+
+      const appliedUser = coupon.users_applied.find(
+        (entry) => entry.user.toString() === req.user.id
+      );
+
+      if (appliedUser) {
+        await Coupon.updateOne(
+          { code, "users_applied.user": req.user.id },
+          { $inc: { "users_applied.$.used_count": 1 } }
+        );
+      } else {
+        await Coupon.updateOne(
+          { code },
+          {
+            $push: {
+              users_applied: {
+                user: req.user.id,
+                used_count: 1,
+              },
+            },
+          }
+        );
+      }
+    }
+
+    const new_order = new Order({ ...order_data, user: req.user.id });
+
+    if (new_order) {
+      for (const item of order_data.order_items) {
+        const { product, variant, quantity } = item;
+
+        await Product.findByIdAndUpdate(
+          product,
+          { $inc: { quantity_sold: quantity } },
+          { new: true, runValidators: true }
         );
 
-        // Check if the variant exists and has enough stock
-        if (variant_data && variant_data.stock >= quantity) {
-          // Reduce the stock by the quantity purchased
-          variant_data.stock -= quantity;
-        } else {
-          return res.status(400).json({
-            success: false,
-            message: `Not enough stock for variant: ${variant}`,
-          });
-        }
+        const product_data = await Product.findById(product);
 
-        // Save the updated product with the modified variant stock
-        await product_data.save();
+        if (product_data) {
+          const variant_data = product_data.variants.find(
+            (v) => v.sku === variant
+          );
+
+          if (variant_data && variant_data.stock >= quantity) {
+            variant_data.stock -= quantity;
+          } else {
+            return res.status(400).json({
+              success: false,
+              message: `Not enough stock for variant: ${variant}`,
+            });
+          }
+
+          await product_data.save();
+        }
       }
-    }
-    await Cart.updateOne(
-      { user: req.user.id },
-      {
-        $pull: {
-          items: {
-            product: {
-              $in: order_data.order_items.map((item) => item.product),
+      await Cart.updateOne(
+        { user: req.user.id },
+        {
+          $pull: {
+            items: {
+              product: {
+                $in: order_data.order_items.map((item) => item.product),
+              },
             },
           },
-        },
+        }
+      );
+    }
+
+    if (order_data.payment_method === "Wallet") {
+      let wallet_exists = await Wallet.findOne({ user: req.user.id });
+      console.log(wallet_exists);
+
+      if (wallet_exists) {
+        if (!(wallet_exists.balance >= new_order.total_price_with_discount)) {
+          return res.status(400).json({
+            message: "Insufficient balance in your wallet",
+          });
+        }
+        wallet_exists.balance -= new_order.total_price_with_discount;
+
+        const transaction = {
+          order_id: new_order._id,
+          transaction_date: new Date(),
+          transaction_type: "debit",
+          transaction_status: "completed",
+          amount: new_order.total_price_with_discount * -1,
+        };
+
+        wallet_exists.transactions.push(transaction);
+
+        await wallet_exists.save();
+      } else {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Insufficient balance in your wallet. Please add balance first.",
+        });
       }
-    );
+    }
+
+    const cart = await Cart.findOne({ user: req.user.id });
+    if (cart) {
+      cart.totalAmount = cart.items.reduce((acc, item) => {
+        return acc + item.totalPrice;
+      }, 0);
+
+      // Step 3: Update the cart with the new totalAmount
+      await cart.save();
+    }
+
+    // Save the order after updating the stock
+    await new_order.save();
+
+    await createSalesReport(new_order._id);
+
+    res.json({ success: true, order_id: new_order._id });
   }
-  const cart = await Cart.findOne({ user: req.user.id });
-  if (cart) {
-    cart.totalAmount = cart.items.reduce((acc, item) => {
-      return acc + item.totalPrice;
-    }, 0);
-
-    // Step 3: Update the cart with the new totalAmount
-    await cart.save();
-  }
-
-  // Save the order after updating the stock
-  await new_order.save();
-
-  await createSalesReport(new_order._id);
-
-  res.json({ success: true, order_id: new_order._id });
 });
 
 // for getting user specific orders

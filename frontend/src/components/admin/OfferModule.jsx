@@ -95,33 +95,38 @@ export default function OfferModule() {
   }, [searchTerm, debouncedFetchProducts]);
 
   const handleAddOffer = (event) => {
-    setAddOfferFormModal(false);
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    console.log(formData.get("category"));
-    const newOffer = {
-      name: formData.get("name"),
-      type: formData.get("type"),
-      value: Number(formData.get("value")),
-      target: activeTab,
-      targetId:
-        activeTab === "product"
-          ? selectedProduct._id
-          : formData.get("category"),
-      targetName:
-        activeTab === "product"
-          ? selectedProduct.name
-          : categories.find((c) => c._id === formData.get("category"))?.title,
-      endDate: formData.get("endDate"),
-    };
-    console.log(newOffer);
-    addNewOffer(newOffer, {
-      onSuccess: () =>
-        toast.success("Offer Added Successfully!", { position: "top-center" }),
-    });
-    event.currentTarget.reset();
-    setSelectedProduct(null);
-    setSearchTerm("");
+    if (Number(formData.get("value")) <= 90) {
+      setAddOfferFormModal(false);
+      const newOffer = {
+        name: formData.get("name"),
+        type: formData.get("type"),
+        value: Number(formData.get("value")),
+        target: activeTab,
+        targetId:
+          activeTab === "product"
+            ? selectedProduct._id
+            : formData.get("category"),
+        targetName:
+          activeTab === "product"
+            ? selectedProduct.name
+            : categories.find((c) => c._id === formData.get("category"))?.title,
+        endDate: formData.get("endDate"),
+      };
+      console.log(newOffer);
+      addNewOffer(newOffer, {
+        onSuccess: () =>
+          toast.success("Offer Added Successfully!", {
+            position: "top-center",
+          }),
+      });
+      event.currentTarget.reset();
+      setSelectedProduct(null);
+      setSearchTerm("");
+    } else {
+      toast.error("Offer value cannot exceed 90%", { position: "top-center" });
+    }
   };
 
   const handleDeleteOffer = (id) => {
@@ -227,7 +232,7 @@ export default function OfferModule() {
                     htmlFor="value"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    Offer Value
+                    Offer Value (in %)
                   </label>
                   <input
                     id="value"

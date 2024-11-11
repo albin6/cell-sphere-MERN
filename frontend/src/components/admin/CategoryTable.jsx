@@ -19,7 +19,7 @@ import { generateRandomCode } from "../../utils/random-code/randomCodeGenerator"
 function CategoryTable() {
   // ===========================================================================
   // ========================== for pagination =================================
-  const itemsPerPage = 4;
+  const itemsPerPage = 8;
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
 

@@ -11,7 +11,7 @@ import { generateRandomCode } from "../../utils/random-code/randomCodeGenerator"
 export default function UserListing() {
   // ===========================================================================
   // ========================== for pagination =================================
-  const itemsPerPage = 4;
+  const itemsPerPage = 12;
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
 

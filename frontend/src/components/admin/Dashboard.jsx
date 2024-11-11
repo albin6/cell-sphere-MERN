@@ -2,35 +2,16 @@ import Header from "./Header";
 import Sidebar from "./Sidebar";
 import React, { useEffect, useState } from "react";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
   Clock1Icon,
   DollarSignIcon,
   Menu,
   ShoppingBasket,
   UserIcon,
-  X,
 } from "lucide-react";
 import { useDashboard } from "../../hooks/CustomHooks";
 import Loading from "./Loading";
 import DashboardChart from "./DashboardChart";
 import BestSelling from "./BestSelling";
-
-const salesData = [
-  { name: "Jan", sales: 0 },
-  { name: "Feb", sales: 25500 },
-  { name: "Mar", sales: 35000 },
-  { name: "Apr", sales: 46000 },
-  { name: "May", sales: 50000 },
-  { name: "Jun", sales: 60000 },
-];
 
 export default function Dashboard() {
   const { data, isLoading } = useDashboard();

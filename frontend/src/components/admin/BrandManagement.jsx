@@ -16,7 +16,7 @@ import Pagination from "../user/Pagination";
 const BrandManagement = () => {
   // ===========================================================================
   // ========================== for pagination =================================
-  const itemsPerPage = 4;
+  const itemsPerPage = 8;
   const [totalPages, setTotalPages] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -234,14 +234,13 @@ const BrandManagement = () => {
           </table>
         </div>
       )}
-      {
-        brands.length > 0 && 
+      {brands.length > 0 && (
         <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        paginate={paginate}
-      />
-      }
+          currentPage={currentPage}
+          totalPages={totalPages}
+          paginate={paginate}
+        />
+      )}
 
       {/* Edit Brand Modal */}
       {isModalOpen && editingBrand && (

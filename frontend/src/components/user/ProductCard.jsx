@@ -38,10 +38,11 @@ function ProductCard({ product }) {
             ₹
             {(
               product?.price -
-              (product?.price * product?.discount +
-                (product?.offer && product?.offer?.offer_value
-                  ? product?.offer?.offer_value
-                  : 0)) /
+              (product?.price *
+                (product?.discount +
+                  (product?.offer && product?.offer?.offer_value
+                    ? product?.offer?.offer_value
+                    : 0))) /
                 100
             ).toFixed(2)}
           </span>
