@@ -314,7 +314,7 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
                         {o.product.variants[0].color})
                       </h3>
                       <p className="text-gray-600 mb-2">
-                        Price: ₹{o.total_price}{" "}
+                        Price: ₹{Number(o.total_price).toFixed(2)}{" "}
                         <span className="text-sm text-green-800 font-semibold">
                           <strike className=" text-red-800">₹{o.price}</strike>{" "}
                           {(
