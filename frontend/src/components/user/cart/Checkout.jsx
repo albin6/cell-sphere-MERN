@@ -440,7 +440,7 @@ export default function CheckoutPage() {
                 <span>
                   ₹
                   {(!isCouponApplied
-                    ? total.toFixed(2)
+                    ? total
                     : total - discountAfterApplyingCoupon
                   ).toFixed(2)}
                 </span>
