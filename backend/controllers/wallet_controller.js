@@ -20,7 +20,7 @@ export const get_wallet_details = AsyncHandler(async (req, res) => {
 export const update_wallet_balance = AsyncHandler(async (req, res) => {
   console.log("in update_wallet_balance");
   const user_id = req.user.id;
-  const { amount } = req.body;
+  const { amount, payment_status } = req.body;
 
   // Find the user's wallet in the database
   let user_wallet = await Wallet.findOne({ user: user_id });
@@ -33,12 +33,14 @@ export const update_wallet_balance = AsyncHandler(async (req, res) => {
   }
 
   // Update the wallet balance
-  user_wallet.balance += amount;
+  if (payment_status !== "failed") {
+    user_wallet.balance += amount;
+  }
 
   const transaction = {
     transaction_date: new Date(),
     transaction_type: "credit",
-    transaction_status: "completed",
+    transaction_status: payment_status,
     amount: amount,
   };
 

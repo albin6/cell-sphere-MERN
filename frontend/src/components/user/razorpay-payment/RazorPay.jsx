@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { axiosInstance } from "../../../config/axiosInstance";
 import { useRazorpay } from "react-razorpay";
 
-const RazorPay = ({ amount, handlePlaceOrder }) => {
+const RazorPay = ({ amount, handlePlaceOrder, isWallet }) => {
   const { error, isLoading, Razorpay } = useRazorpay();
   const [userInfo, setUserInfo] = useState({});
+  const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
   useEffect(() => {
     const getUserInfo = async () => {
@@ -36,7 +37,8 @@ const RazorPay = ({ amount, handlePlaceOrder }) => {
       order_id: "",
       handler: (response) => {
         console.log(response);
-        alert("Payment Successful!");
+        handlePlaceOrder(isWallet && "completed");
+        setIsOrderPlaced(true);
       },
       prefill: {
         name: userInfo.name,
@@ -53,16 +55,18 @@ const RazorPay = ({ amount, handlePlaceOrder }) => {
   };
 
   return (
-    <div>
+    <div className="mt-3">
       {isLoading && <p className="text-center">Loading Razorpay...</p>}
       {error && <p className="text-center">Error loading Razorpay: {error}</p>}
-      <button
-        className="py-2 bg-gray-700 text-white rounded hover:bg-gray-800 w-full"
-        onClick={handlePayment}
-        disabled={isLoading}
-      >
-        Pay Now
-      </button>
+      {!isLoading && !error && !isOrderPlaced && (
+        <button
+          className="py-2 bg-gray-700 text-white rounded hover:bg-gray-800 w-full"
+          onClick={handlePayment}
+          disabled={isLoading}
+        >
+          Pay Now
+        </button>
+      )}
     </div>
   );
 };

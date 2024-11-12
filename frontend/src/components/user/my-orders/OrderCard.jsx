@@ -134,6 +134,18 @@ export default function OrderCard({ order, refetch }) {
         >
           View Order Details
         </button>
+        <button
+          onClick={() => generateInvoice(order.id)}
+          disabled={generatingInvoice === order.id}
+          className="px-3 py-1 text-sm border flex justify-center items-center border-gray-300 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors duration-200"
+        >
+          {generatingInvoice === order.id ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FileDown className="h-4 w-4 mr-2" />
+          )}
+          {generatingInvoice === order.id ? "Generating..." : "Invoice"}
+        </button>
       </div>
       <div className="p-4 space-y-4">
         {order &&
@@ -167,9 +179,9 @@ export default function OrderCard({ order, refetch }) {
                 </div>
               </div>
 
-              <div className="flex flex-col items-end space-y-2 sm:min-w-[120px]">
+              <div className="flex items-end space-x-2 sm:min-w-[120px]">
                 <div
-                  className={`text-sm font-medium px-2 py-1 ${
+                  className={`text-sm rounded font-medium px-2 py-1 ${
                     item.status === "Cancelled"
                       ? "bg-red-100 text-red-800"
                       : "bg-green-100 text-green-800"
@@ -201,21 +213,6 @@ export default function OrderCard({ order, refetch }) {
                       Cancel
                     </button>
                   )}
-
-                  <button
-                    onClick={() => generateInvoice(order.id)}
-                    disabled={generatingInvoice === order.id}
-                    className="px-3 py-1 text-sm border flex justify-center items-center border-gray-300 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors duration-200"
-                  >
-                    {generatingInvoice === order.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <FileDown className="h-4 w-4 mr-2" />
-                    )}
-                    {generatingInvoice === order.id
-                      ? "Generating..."
-                      : "Invoice"}
-                  </button>
                 </div>
               </div>
             </div>

@@ -6,9 +6,10 @@ export const getWalletBalance = async () => {
 };
 
 // for adding funds to wallet
-export const addFunds = async (amount) => {
+export const addFunds = async ({ amount, payment_status }) => {
   const response = await axiosInstance.put("/api/users/wallet", {
     amount,
+    payment_status,
   });
   return response.data;
 };

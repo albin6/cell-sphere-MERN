@@ -6,7 +6,12 @@ import {
 } from "@paypal/react-paypal-js";
 import { inrToUsd } from "./CurrencyConverter";
 
-const PaypalCheckout = ({ totalAmount, handlePlaceOrder, onClose }) => {
+const PaypalCheckout = ({
+  totalAmount,
+  handlePlaceOrder,
+  onClose,
+  isWallet,
+}) => {
   const [isOrderPlaced, setIsOrderPlaced] = useState(false);
 
   const [{ options, isPending, isRejected }, dispatch] =
@@ -32,20 +37,20 @@ const PaypalCheckout = ({ totalAmount, handlePlaceOrder, onClose }) => {
       .then((details) => {
         const name = details.payer.name.given_name;
         console.log("daa dhe saanm==>", actions);
-        handlePlaceOrder("Paid");
+        handlePlaceOrder(isWallet ? "completed" : "Paid");
         setIsOrderPlaced(true);
         onClose;
         return;
       })
       .catch((error) => {
         console.error("Payment capture failed", error);
-        handlePlaceOrder("Failed");
+        handlePlaceOrder(isWallet ? "failed" : "Failed");
       });
   };
 
   const handleCancelOrder = (isOrderPlaced) => {
     console.log("cancel njekkii", isOrderPlaced);
-    handlePlaceOrder("Failed");
+    handlePlaceOrder(isWallet ? "failed" : "Failed");
   };
 
   return (

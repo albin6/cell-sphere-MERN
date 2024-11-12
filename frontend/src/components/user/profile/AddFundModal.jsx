@@ -2,19 +2,17 @@ import React, { useState } from "react";
 import { X } from "lucide-react";
 import { useAddWalletBalance } from "../../../hooks/CustomHooks";
 import { addFunds } from "../../../utils/wallet/walletCRUD";
+import RazorPay from "../razorpay-payment/RazorPay";
+import PaypalCheckout from "../paypal-payment/PaypalCheckout";
 
 export default function AddFundModal({ isOpen = false, onClose = () => {} }) {
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
   const { mutate: addAmount } = useAddWalletBalance(addFunds);
+  const [paymentMethod, setPaymentMethod] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      setError("Please enter a valid amount greater than 0");
-      return;
-    }
-    addAmount(Number(amount));
+  const handleSubmit = (payment_status) => {
+    addAmount({ amount: Number(amount), payment_status });
     setAmount("");
     setError("");
     onClose();
@@ -42,7 +40,7 @@ export default function AddFundModal({ isOpen = false, onClose = () => {} }) {
             <X size={24} />
           </button>
         </div>
-        <form onSubmit={handleSubmit}>
+        <form>
           <div className="mb-4">
             <label
               htmlFor="amount"
@@ -66,21 +64,41 @@ export default function AddFundModal({ isOpen = false, onClose = () => {} }) {
             />
             {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
           </div>
+          {["Paypal"].map((method, index) => (
+            <div key={index} className="flex items-center mb-4">
+              <>
+                <input
+                  type="radio"
+                  id={`payment-${index}`}
+                  name="payment"
+                  value={method}
+                  checked={paymentMethod === method}
+                  onChange={() => setPaymentMethod(method)}
+                  className="mr-2"
+                />
+                <label htmlFor={`payment-${index}`}>{method}</label>{" "}
+              </>
+            </div>
+          ))}
           <div className="flex justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="w-full py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-            >
-              Add Funds
-            </button>
           </div>
+          {amount && paymentMethod === "Paypal" && (
+            <PaypalCheckout
+              totalAmount={amount}
+              handlePlaceOrder={handleSubmit}
+              isWallet={true}
+            />
+          )}
+          {amount && paymentMethod === "Razorpay" && (
+            <RazorPay amount={amount} handlePlaceOrder={handleSubmit} />
+          )}
         </form>
       </div>
     </div>

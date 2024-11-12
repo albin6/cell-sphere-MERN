@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useWalletBalance } from "../../../hooks/CustomHooks";
 import AddFundModal from "./AddFundModal";
+import Paypal from "../paypal-payment/Paypal";
 
 export default function Wallet() {
   const { data: wallet, isLoading } = useWalletBalance();
@@ -76,9 +77,12 @@ export default function Wallet() {
                         {transaction.transaction_type === "debit" && (
                           <CreditCard className="w-4 h-4 text-red-500 inline mr-2" />
                         )}
-                        {transaction.transaction_type === "credit" && (
-                          <RefreshCw className="w-4 h-4 text-green-500 inline mr-2" />
-                        )}
+                        {transaction.transaction_type === "credit" &&
+                          (transaction.transaction_status == "failed" ? (
+                            <RefreshCw className="w-4 h-4 text-red-500 inline mr-2" />
+                          ) : (
+                            <RefreshCw className="w-4 h-4 text-green-500 inline mr-2" />
+                          ))}
                         <span className="text-sm text-gray-700">
                           {transaction.transaction_type
                             .charAt(0)
@@ -89,7 +93,9 @@ export default function Wallet() {
                       <td
                         className={`py-3 px-4 text-sm ${
                           transaction.amount >= 0
-                            ? "text-green-600"
+                            ? transaction.transaction_status == "failed"
+                              ? "text-red-600"
+                              : "text-green-600"
                             : "text-red-600"
                         }`}
                       >
@@ -101,7 +107,13 @@ export default function Wallet() {
                           transaction.transaction_date
                         ).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-4 text-sm text-gray-700">
+                      <td
+                        className={`py-3 px-4 text-sm ${
+                          transaction.transaction_status == "failed"
+                            ? "text-red-600"
+                            : "text-gray-700"
+                        }`}
+                      >
                         {transaction.transaction_status}
                       </td>
                     </tr>
@@ -109,10 +121,12 @@ export default function Wallet() {
               </tbody>
             </table>
             {addFundModal && (
-              <AddFundModal
-                isOpen={addFundModal}
-                onClose={() => setAddFundModal(false)}
-              />
+              <Paypal>
+                <AddFundModal
+                  isOpen={addFundModal}
+                  onClose={() => setAddFundModal(false)}
+                />
+              </Paypal>
             )}
           </div>
         </div>

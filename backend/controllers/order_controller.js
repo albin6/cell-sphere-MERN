@@ -342,7 +342,7 @@ export const cancel_order = AsyncHandler(async (req, res) => {
   orderItem.order_status = "Cancelled";
 
   // Handle refund if payment method is Wallet or Paypal
-  if (["Wallet", "Paypal"].includes(order.payment_method)) {
+  if (["Wallet", "Paypal", "Razorpay"].includes(order.payment_method)) {
     let user_wallet = await Wallet.findOne({ user: req.user.id });
 
     if (!user_wallet) {
