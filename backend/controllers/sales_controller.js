@@ -36,6 +36,13 @@ const getSalesReportData = async (startDate, endDate, period) => {
         $lt: new Date(),
       },
     };
+  } else if (period === "yearly") {
+    dateFilter = {
+      orderDate: {
+        $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
+        $lt: new Date(),
+      },
+    };
   }
 
   return await SalesReport.find(dateFilter);
@@ -67,8 +74,6 @@ export const get_sales_report = AsyncHandler(async (req, res) => {
   if (period === "custom" && startDate && endDate) {
     const start = new Date(startDate).setHours(0, 0, 0, 0);
     const end = new Date(endDate).setHours(23, 59, 59, 999);
-    // const start = new Date(startDate);
-    // const end = new Date(endDate);
     dateFilter = { orderDate: { $gte: new Date(start), $lte: new Date(end) } };
     console.log("Custom date range filter:", dateFilter);
   }
@@ -94,6 +99,13 @@ export const get_sales_report = AsyncHandler(async (req, res) => {
         $lt: new Date(),
       },
     };
+  } else if (period === "yearly") {
+    dateFilter = {
+      orderDate: {
+        $gte: new Date(new Date().setFullYear(new Date().getFullYear() - 1)),
+        $lt: new Date(),
+      },
+    };
   }
 
   console.log(dateFilter);
@@ -106,15 +118,19 @@ export const get_sales_report = AsyncHandler(async (req, res) => {
     .skip(skip)
     .limit(limit);
 
+  const report_data = await SalesReport.find(dateFilter);
+
   const totalSalesCount = reports.length;
-  const totalOrderAmount = reports.reduce(
+  const totalOrderAmount = report_data.reduce(
     (acc, report) => acc + report.finalAmount,
     0
   );
-  const totalDiscount = reports.reduce(
-    (acc, report) => acc + report.discount + report.couponDeduction,
-    0
-  );
+  const totalDiscount = report_data.reduce((acc, report) => {
+    const reportDiscount = report.product.reduce((productAcc, product) => {
+      return productAcc + product.discount + product.couponDeduction;
+    }, 0);
+    return acc + reportDiscount;
+  }, 0);
 
   res.status(200).json({
     reports,

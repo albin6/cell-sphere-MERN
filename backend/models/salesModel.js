@@ -60,13 +60,7 @@ const sales_report_schema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: [
-      "Credit Card/ Debit Card",
-      "Wallet",
-      "UPI",
-      "Cash on Delivery",
-      "Paypal",
-    ],
+    enum: ["Razorpay", "Wallet", "UPI", "Cash on Delivery", "Paypal"],
     required: true,
   },
   deliveryStatus: {

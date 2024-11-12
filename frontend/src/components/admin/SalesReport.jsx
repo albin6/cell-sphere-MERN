@@ -18,6 +18,7 @@ const SalesReport = () => {
   const [endDate, setEndDate] = useState("");
   const [salesData, setSalesData] = useState([]);
   const [totalDiscount, setTotalDiscount] = useState(0);
+  const [totalOrderAmount, setTotalOrderAmount] = useState(0);
 
   useEffect(() => {
     fetchSalesData();
@@ -53,18 +54,8 @@ const SalesReport = () => {
       console.log(response.data);
       setTotalPages(response.data.totalPages);
       setCurrentPage(response.data.page);
-      setTotalDiscount(
-        response.data.reports.reduce(
-          (acc, curr) =>
-            acc +
-            curr.product.reduce(
-              (ac, cur) => ac + cur.discount + cur.couponDeduction,
-              0
-            ),
-          0
-        ),
-        0
-      );
+      setTotalDiscount(response.data.totalDiscount);
+      setTotalOrderAmount(response.data.totalOrderAmount);
       setSalesData(response.data.reports);
     } catch (error) {
       console.error("Error fetching sales data:", error);
@@ -122,7 +113,7 @@ const SalesReport = () => {
           Report Settings
         </h2>
         <div className="flex flex-wrap gap-4 mb-6">
-          {["daily", "weekly", "yearly", "custom"].map((range) => (
+          {["daily", "weekly", "monthly", "yearly", "custom"].map((range) => (
             <button
               key={range}
               onClick={() => handleRangeChange(range)}
@@ -211,10 +202,7 @@ const SalesReport = () => {
                 <td className="border p-2"></td>
                 <td className="border p-2"></td>
                 <td className="border p-2">
-                  ₹
-                  {salesData
-                    .reduce((sum, sale) => sum + sale.finalAmount, 0)
-                    .toFixed(2)}
+                  ₹{Number(totalOrderAmount).toFixed(2)}
                 </td>
               </tr>
               <tr className="font-bold bg-gray-100">
