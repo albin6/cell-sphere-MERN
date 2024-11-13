@@ -30,7 +30,7 @@ const RazorPay = ({ amount, handlePlaceOrder, isWallet }) => {
   const handlePayment = () => {
     const options = {
       key: import.meta.env.VITE_RAZORPAY_KEY,
-      amount: amount * 100,
+      amount: Number(amount).toFixed(0) * 100,
       currency: "INR",
       name: "",
       description: "",

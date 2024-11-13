@@ -124,15 +124,15 @@ export default function Signup() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-100 to-white flex items-center justify-center p-4">
       <div className="max-w-7xl w-full bg-white rounded-xl shadow-2xl border border-gray-200 overflow-hidden">
-        <div className="flex flex-col md:flex-row">
-          <div className="hidden md:block md:w-1/2 p-6">
+        <div className="flex flex-col lg:flex-row">
+          <div className="hidden lg:block lg:w-1/2 p-6">
             <img
               src="/Login-Signup/login.jpg"
               alt="Smartphone illustration"
               className="w-full h-full object-cover rounded-lg"
             />
           </div>
-          <div className="w-full md:w-1/2 p-6 md:p-8 lg:p-12">
+          <div className="w-full lg:w-1/2 p-6 md:p-8 lg:p-12">
             <div className="flex flex-col justify-center mb-6">
               <CreateUserIcon className="mx-auto w-16 h-16" />
               <h2 className="mt-6 text-center text-2xl md:text-3xl font-extrabold text-gray-900">
@@ -156,8 +156,8 @@ export default function Signup() {
             >
               {({ isSubmitting }) => (
                 <Form className="space-y-4">
-                  <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
-                    <div className="w-full sm:w-1/2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
                       <label
                         htmlFor="firstName"
                         className="block text-sm font-medium text-gray-700"
@@ -175,7 +175,7 @@ export default function Signup() {
                         className="text-red-500 text-sm mt-1"
                       />
                     </div>
-                    <div className="w-full sm:w-1/2">
+                    <div>
                       <label
                         htmlFor="lastName"
                         className="block text-sm font-medium text-gray-700"
