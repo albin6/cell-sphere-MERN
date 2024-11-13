@@ -56,6 +56,7 @@ import {
   get_specific_order_details,
   get_user_specific_orders,
   place_order,
+  request_for_return,
 } from "../controllers/order_controller.js";
 import {
   get_wallet_details,
@@ -315,6 +316,17 @@ user_router.get(
   authenticate_token,
   check_role(["user"]),
   get_user_specific_info
+);
+
+// ----------------------------------------------------
+// ----------------------------------------------------
+
+// order return
+user_router.patch(
+  "/order/:orderId/return",
+  authenticate_token,
+  check_role(["user"]),
+  request_for_return
 );
 
 // ----------------------------------------------------

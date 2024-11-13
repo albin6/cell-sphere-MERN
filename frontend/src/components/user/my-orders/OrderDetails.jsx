@@ -6,11 +6,16 @@ import {
   useOrderDetails,
   useOrderDetailsMutation,
 } from "../../../hooks/CustomHooks";
-import { cancelOrder, getOrderDetails } from "../../../utils/order/orderCRUD";
+import {
+  cancelOrder,
+  getOrderDetails,
+  requestForReturningProduct,
+} from "../../../utils/order/orderCRUD";
 import { FileDown, Loader2 } from "lucide-react";
 import { axiosInstance } from "../../../config/axiosInstance";
 import FailedPayment from "../paypal-payment/FailedPayment";
 import { generateRandomCode } from "../../../utils/random-code/randomCodeGenerator";
+import ReturnRequestModal from "./ReturnRequestModal";
 
 const OrderDetails = ({ orderId: propsOrderId }) => {
   const location = useLocation();
@@ -26,11 +31,17 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
     getOrderDetails(orderId)
   );
   const { mutate: cancel_order } = useOrderDetailsMutation(cancelOrder);
+  const { mutate: returnRequest } = useOrderDetailsMutation(
+    requestForReturningProduct
+  );
 
   const [userName, setUserName] = useState("");
   const [order, setOrder] = useState(null);
   const [generatingInvoice, setGeneratingInvoice] = useState(null);
 
+  const [productNameToReturn, setProductNameToReturn] = useState("");
+  const [productVariantToReturn, setProductVariantToReturn] = useState(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderDetails, setOrderDetails] = useState({});
   const [anyOrderLeft, setAnyOrderLeft] = useState(null);
@@ -340,8 +351,22 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
                             Cancelled
                           </button>
                         ) : o.order_status === "Delivered" ? (
-                          <button className="w-full sm:w-auto bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600">
-                            return
+                          <button
+                            onClick={() => {
+                              setProductNameToReturn(o.product.name);
+                              setProductVariantToReturn(o.variant);
+                              setIsRequestModalOpen(true);
+                            }}
+                            className={`w-full sm:w-auto ${
+                              o.return_request?.is_requested
+                                ? "opacity-50"
+                                : "opacity-50"
+                            } bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600`}
+                            disabled={o.return_request?.is_requested}
+                          >
+                            {o.return_request?.is_requested
+                              ? "Return request send"
+                              : "Return"}
                           </button>
                         ) : (
                           <button
@@ -359,6 +384,15 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
                   </div>
                 </div>
               ))}
+
+            <ReturnRequestModal
+              isOpen={isRequestModalOpen}
+              onClose={() => setIsRequestModalOpen(false)}
+              productName={productNameToReturn}
+              productVariant={productVariantToReturn}
+              orderId={orderId}
+              handleReturnRequest={returnRequest}
+            />
 
             <CancelOrderModal
               isOpen={isModalOpen}

@@ -42,6 +42,22 @@ const order_schema = new mongoose.Schema({
         enum: ["Pending", "Shipped", "Delivered", "Cancelled"],
         default: "Pending",
       },
+      return_request: {
+        is_requested: {
+          type: Boolean,
+          default: false,
+        },
+        reason: {
+          type: String,
+        },
+        comment: {
+          type: String,
+        },
+        is_approved: {
+          type: Boolean,
+          default: false,
+        },
+      },
     },
   ],
   total_amount: {

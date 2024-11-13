@@ -50,3 +50,38 @@ export const getOrdersUser = async () => {
   console.log(response);
   return response.data.order_data;
 };
+
+// ============================================================================
+
+export const requestForReturningProduct = async ({
+  orderId,
+  productVariant,
+  reason,
+  comments,
+}) => {
+  const response = await axiosInstance.patch(
+    `/api/users/order/${orderId}/return`,
+    {
+      productVariant,
+      reason,
+      comments,
+    }
+  );
+  return response.data;
+};
+
+// response for the order return request
+export const responsForReturnRequest = async ({
+  isApproved,
+  productVariant,
+}) => {
+  console.log(isApproved, productVariant);
+  const response = await adminAxiosInstance.patch(
+    `/api/admin/order/${orderId}/response`,
+    {
+      isApproved,
+      productVariant,
+    }
+  );
+  return response.data;
+};

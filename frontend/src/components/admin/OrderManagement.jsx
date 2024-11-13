@@ -6,6 +6,7 @@ import {
   cancelOrderAdmin,
   changeOrderStatus,
   getOrders,
+  responsForReturnRequest,
 } from "../../utils/order/orderCRUD";
 import toast from "react-hot-toast";
 import NoOrdersFoundAdmin from "./NoOrderFoundAdmin";
@@ -15,6 +16,7 @@ import { X } from "lucide-react";
 import Pagination from "../user/Pagination";
 import ConfirmationModal from "./ConfirmationModal";
 import { generateRandomCode } from "../../utils/random-code/randomCodeGenerator";
+import ReturnRequestDetailsModal from "./ReturnRequestDetailsModal";
 
 export default function Component() {
   const itemsPerPage = 4;
@@ -26,6 +28,7 @@ export default function Component() {
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [sku, setSku] = useState(null);
+  const [returnItem, setReturnItem] = useState(null);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -36,6 +39,41 @@ export default function Component() {
   );
   const { mutate: cancel_order } = useAllOrdersMutation(cancelOrderAdmin);
   const { mutate: changeStatus } = useAllOrdersMutation(changeOrderStatus);
+
+  const { mutate: respondForRequest } = useAllOrdersMutation(
+    responsForReturnRequest
+  );
+
+  const [isRepsonseSend, setIsResponseSend] = useState(false);
+
+  // ------------------------------------------------------------------------------
+
+  const [isReturnRequestDetailsModalOpen, setIsReturnRequestDetailsModalOpen] =
+    useState(false);
+
+  const handleReturnRequest = (isApproved, productVariant) => {
+    console.log(`Approved request ${isApproved}`);
+    setIsReturnRequestDetailsModalOpen(false);
+    respondForRequest(
+      { isApproved, productVariant },
+      {
+        onSuccess: () => {
+          if (isApproved) {
+            toast.success("Return request approved", {
+              position: "top-center",
+            });
+            setIsResponseSend(true);
+          } else {
+            toast.error("Return request rejected", { position: "top-center" });
+            setIsResponseSend(true);
+          }
+        },
+      }
+    );
+    // Add your approval logic here
+  };
+
+  // ------------------------------------------------------------------------------
 
   useEffect(() => {
     if (data) {
@@ -102,122 +140,147 @@ export default function Component() {
           </thead>
           <tbody>
             {orders.map((order, index) => (
-              <tr key={order._id} className="border-b">
-                <td className="p-2">{generateRandomCode()}</td>
-                <td className="p-2">{order.user_full_name}</td>
-                <td className="p-2">
-                  <ul className="space-y-4">
-                    {order.order_items.map((item, itemIndex) => (
-                      <li key={itemIndex} className="bg-gray-50 p-3 rounded-lg">
-                        <div className="space-y-2">
-                          <p className="font-medium">{item.product_name}</p>
-                          <p className="text-sm text-gray-600">
-                            SKU: {item.sku}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Status: {item.order_status}
-                          </p>
-                          <div className="flex flex-wrap items-center gap-2 mt-2">
-                            <div className="w-48">
-                              <label
-                                htmlFor={`status-select-${orderId}`}
-                                className="sr-only"
-                              >
-                                Change order status
-                              </label>
-                              <select
-                                id={`status-select-${order._id}`}
-                                value={item.order_status}
-                                disabled={
-                                  item.order_status === "Cancelled" ||
-                                  item.order_status === "Delivered"
-                                }
-                                onChange={(e) =>
-                                  handleStatusChange(
-                                    order._id,
-                                    item.sku,
-                                    e.target.value
-                                  )
-                                }
-                                className="w-full p-2 border border-gray-300 rounded-md bg-white text-sm"
-                              >
-                                <option value="" disabled>
-                                  Select new status
-                                </option>
-                                <option value="Pending">Pending</option>
-                                <option value="Shipped">Shipped</option>
-                                <option value="Delivered">Delivered</option>
-                                <option value="Cancelled">Cancelled</option>
-                              </select>
-                            </div>
+              <>
+                <tr key={order._id} className="border-b">
+                  <td className="p-2">{generateRandomCode()}</td>
+                  <td className="p-2">{order.user_full_name}</td>
+                  <td className="p-2">
+                    <ul className="space-y-4">
+                      {order.order_items.map((item, itemIndex) => (
+                        <li
+                          key={itemIndex}
+                          className="bg-gray-50 p-3 rounded-lg"
+                        >
+                          <div className="space-y-2">
+                            <p className="font-medium">{item.product_name}</p>
+                            <p className="text-sm text-gray-600">
+                              SKU: {item.sku}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              Status: {item.order_status}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                              <div className="w-48">
+                                <label
+                                  htmlFor={`status-select-${orderId}`}
+                                  className="sr-only"
+                                >
+                                  Change order status
+                                </label>
+                                <select
+                                  id={`status-select-${order._id}`}
+                                  value={item.order_status}
+                                  disabled={
+                                    item.order_status === "Cancelled" ||
+                                    item.order_status === "Delivered"
+                                  }
+                                  onChange={(e) =>
+                                    handleStatusChange(
+                                      order._id,
+                                      item.sku,
+                                      e.target.value
+                                    )
+                                  }
+                                  className="w-full p-2 border border-gray-300 rounded-md bg-white text-sm"
+                                >
+                                  <option value="" disabled>
+                                    Select new status
+                                  </option>
+                                  <option value="Pending">Pending</option>
+                                  <option value="Shipped">Shipped</option>
+                                  <option value="Delivered">Delivered</option>
+                                  <option value="Cancelled">Cancelled</option>
+                                </select>
+                              </div>
 
-                            {item.order_status === "Cancelled" ? (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                className={
-                                  "bg-red-600 hover:bg-red-500 opacity-55 text-white"
-                                }
-                                disabled={true}
-                              >
-                                Cancelled
-                              </Button>
-                            ) : item.order_status === "Delivered" ? (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                className={
-                                  "bg-red-600 hover:bg-red-500 opacity-55 text-white"
-                                }
-                                disabled={true}
-                              >
-                                Delivered
-                              </Button>
-                            ) : (
-                              <Button
-                                onClick={() => {
-                                  setIsConfirmationModalOpen(true);
-                                  setOrderId(order._id);
-                                  setSku(item.sku);
-                                }}
-                                variant="destructive"
-                                size="sm"
-                                className={
-                                  "bg-red-600 hover:bg-red-500 text-white"
-                                }
-                              >
-                                Cancel Product
-                              </Button>
-                            )}
+                              {item.order_status === "Cancelled" ? (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className={
+                                    "bg-red-600 hover:bg-red-500 opacity-55 text-white"
+                                  }
+                                  disabled={true}
+                                >
+                                  Cancelled
+                                </Button>
+                              ) : item.order_status === "Delivered" ? (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className={
+                                    "bg-red-600 hover:bg-red-500 opacity-55 text-white"
+                                  }
+                                  disabled={true}
+                                >
+                                  Delivered
+                                </Button>
+                              ) : (
+                                <Button
+                                  onClick={() => {
+                                    setIsConfirmationModalOpen(true);
+                                    setOrderId(order._id);
+                                    setSku(item.sku);
+                                  }}
+                                  variant="destructive"
+                                  size="sm"
+                                  className={
+                                    "bg-red-600 hover:bg-red-500 text-white"
+                                  }
+                                >
+                                  Cancel Product
+                                </Button>
+                              )}
+                              {item.return_request?.is_requested && (
+                                <button
+                                  className="bg-gray-800 text-white px-2 py-1"
+                                  onClick={() => {
+                                    setReturnItem(item);
+                                    setIsReturnRequestDetailsModalOpen(true);
+                                  }}
+                                >
+                                  {isRepsonseSend
+                                    ? "Responce Already Send"
+                                    : "View Return Request"}
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td className="p-2">
-                  {new Date(order.placed_at).toLocaleDateString()}
-                </td>
-                <td className="p-2">
-                  ₹
-                  {order.order_items
-                    .reduce((total, item) => total + item.total_price, 0)
-                    .toFixed(2)}
-                </td>
-                <td className="p-2">
-                  <Button
-                    onClick={() => {
-                      setSelectedOrderId(order._id);
-                      setIsOrderDetailsModalOpen(true);
-                    }}
-                    variant="secondary"
-                    size="sm"
-                    className={"bg-gray-800 hover:bg-gray-700 text-white"}
-                  >
-                    Order Details
-                  </Button>
-                </td>
-              </tr>
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td className="p-2">
+                    {new Date(order.placed_at).toLocaleDateString()}
+                  </td>
+                  <td className="p-2">
+                    ₹
+                    {order.order_items
+                      .reduce((total, item) => total + item.total_price, 0)
+                      .toFixed(2)}
+                  </td>
+                  <td className="p-2">
+                    <Button
+                      onClick={() => {
+                        setSelectedOrderId(order._id);
+                        setIsOrderDetailsModalOpen(true);
+                      }}
+                      variant="secondary"
+                      size="sm"
+                      className={"bg-gray-800 hover:bg-gray-700 text-white"}
+                    >
+                      Order Details
+                    </Button>
+                  </td>
+                </tr>
+                <ReturnRequestDetailsModal
+                  isOpen={isReturnRequestDetailsModalOpen}
+                  onClose={() => setIsReturnRequestDetailsModalOpen(false)}
+                  request={order}
+                  returnItem={returnItem}
+                  handleReturnRequest={handleReturnRequest}
+                />
+              </>
             ))}
           </tbody>
         </table>

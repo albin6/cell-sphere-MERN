@@ -383,7 +383,6 @@ export const cancel_order = AsyncHandler(async (req, res) => {
     }
   }
 
-  // Update delivery status in the sales report
   await SalesReport.updateOne(
     { orderId: order._id, product: product },
     { deliveryStatus: "Cancelled" }
@@ -408,7 +407,6 @@ export const get_all_orders = AsyncHandler(async (req, res) => {
   try {
     const totalOrdersCount = await Order.countDocuments({});
 
-    // Fetch orders with pagination
     const orders = await Order.find({})
       .populate({
         path: "user",
@@ -430,7 +428,6 @@ export const get_all_orders = AsyncHandler(async (req, res) => {
         order_items: order.order_items.map((item) => {
           const product = item.product;
 
-          // Find variant details if available
           const variantDetails = product.variants.find(
             (variant) =>
               variant.sku === item.variant || variant.color === item.variant
@@ -448,7 +445,13 @@ export const get_all_orders = AsyncHandler(async (req, res) => {
             price: item.price,
             discount: item.discount,
             total_price: item.total_price,
-            order_status: item.order_status, // Include item-specific order status
+            order_status: item.order_status,
+            return_request: {
+              is_requested: item.return_request.is_requested,
+              is_approved: item.return_request.is_approved,
+              reason: item.return_request.reason || "",
+              comment: item.return_request.comment || "",
+            },
           };
         }),
         _id: order._id,
@@ -473,7 +476,6 @@ export const update_order_status = AsyncHandler(async (req, res) => {
 
   console.log(sku);
   try {
-    // Find the order by ID
     const order = await Order.findById(order_id);
     if (!order) {
       return res
@@ -482,7 +484,6 @@ export const update_order_status = AsyncHandler(async (req, res) => {
     }
 
     console.log(order);
-    // Find the specific product in the order items
     const item = order.order_items.find(
       (orderItem) => orderItem.variant == sku
     );
@@ -494,18 +495,15 @@ export const update_order_status = AsyncHandler(async (req, res) => {
         .json({ success: false, message: "Product not found in order" });
     }
 
-    // Update the order status of the specific item
     item.order_status = new_status;
     let sales_id;
     await SalesReport.updateOne(
       { orderId: order._id, product: item.product },
       { deliveryStatus: new_status }
     );
-    // Handle stock adjustment and wallet refund if status is "Cancelled"
     if (new_status === "Cancelled") {
       const { product, variant, quantity, price, discount } = item;
 
-      // Update the stock for the specific variant of the product
       const productData = await Product.findById(product);
       if (productData) {
         const variantData = productData.variants.find((v) => v.sku === variant);
@@ -516,7 +514,6 @@ export const update_order_status = AsyncHandler(async (req, res) => {
         }
       }
 
-      // Process refund if payment method is not "Cash on Delivery"
       if (order.payment_method !== "Cash on Delivery") {
         let user_wallet = await Wallet.findOne({ user: req.user.id });
         if (!user_wallet) {
@@ -527,7 +524,6 @@ export const update_order_status = AsyncHandler(async (req, res) => {
           });
         }
 
-        // Calculate refund amount
         const refundAmount = price * (1 - discount / 100);
         user_wallet.balance += refundAmount;
 
@@ -536,7 +532,6 @@ export const update_order_status = AsyncHandler(async (req, res) => {
           { finalAmount: refundAmount }
         );
 
-        // Record the refund transaction
         user_wallet.transactions.push({
           transaction_date: new Date(),
           transaction_type: "credit",
@@ -546,11 +541,8 @@ export const update_order_status = AsyncHandler(async (req, res) => {
 
         await user_wallet.save();
       }
-
-      // Update SalesReport for the specific product within the order
     }
 
-    // Save the updated order
     await order.save();
 
     res.json({
@@ -564,4 +556,63 @@ export const update_order_status = AsyncHandler(async (req, res) => {
       .status(500)
       .json({ success: false, message: "Failed to update order status" });
   }
+});
+
+// ---------------------------------------------------------------------------------
+
+export const request_for_return = AsyncHandler(async (req, res) => {
+  console.log("in return request");
+  const { orderId } = req.params;
+
+  const { productVariant, reason, comments } = req.body;
+
+  console.log(orderId, productVariant);
+
+  const order_data = await Order.findOneAndUpdate(
+    { _id: orderId, "order_items.variant": productVariant },
+    {
+      $set: {
+        "order_items.$.return_request.is_requested": true,
+        "order_items.$.return_request.reason": reason,
+        "order_items.$.return_request.comment": comments,
+      },
+    },
+    { new: true }
+  );
+
+  if (!order_data) {
+    return res.status(404).json({ message: "Order or variant not found" });
+  }
+
+  res
+    .status(200)
+    .json({ message: "Return request updated successfully", order_data });
+});
+
+// for respond to return request ADMIN
+
+export const response_to_return_request = AsyncHandler(async (req, res) => {
+  console.log("in response to return request");
+
+  const { orderId } = req.params;
+
+  const { isApproved, productVariant } = req.body;
+
+  const order_data = await Order.findOneAndUpdate(
+    { _id: orderId, "order_items.variant": productVariant },
+    {
+      $set: {
+        "order_items.$.return_request.is_approved": isApproved,
+      },
+    },
+    { new: true }
+  );
+
+  if (!order_data) {
+    return res.status(404).json({ message: "Order or variant not found" });
+  }
+
+  res
+    .status(200)
+    .json({ message: "Return request updated successfully", order_data });
 });

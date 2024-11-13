@@ -40,6 +40,7 @@ import {
 import {
   cancel_order,
   get_all_orders,
+  response_to_return_request,
   update_order_status,
 } from "../controllers/order_controller.js";
 import {
@@ -170,6 +171,13 @@ admin_router.patch(
   authenticate_token,
   check_role(["admin"]),
   cancel_order
+);
+
+admin_router.patch(
+  "/order/:orderId/response",
+  authenticate_token,
+  check_role(["admin"]),
+  response_to_return_request
 );
 
 // -------------------------------------------------------

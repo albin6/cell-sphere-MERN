@@ -241,7 +241,7 @@ export const useOrderDetailsMutation = (mutationFunc) => {
   return useMutation({
     mutationFn: mutationFunc,
     onSuccess: () => {
-      queryClient.invalidateQueries("orders");
+      queryClient.invalidateQueries(["orders", "allOrders"]);
     },
   });
 };
@@ -251,9 +251,9 @@ export const useOrderDetailsMutation = (mutationFunc) => {
 // for getting orders
 export const useAllOrders = (queryFunc, currentPage, itemsPerPage) => {
   return useQuery({
-    queryKey: ["allOrders", currentPage, itemsPerPage], // Include parameters in the queryKey
-    queryFn: () => queryFunc({ currentPage, itemsPerPage }), // Pass parameters to the query function
-    keepPreviousData: true, // Optional: Keeps previous data while fetching new
+    queryKey: ["allOrders", currentPage, itemsPerPage],
+    queryFn: () => queryFunc({ currentPage, itemsPerPage }),
+    keepPreviousData: true,
   });
 };
 export const useAllOrdersMutation = (mutationFunc) => {
@@ -261,7 +261,7 @@ export const useAllOrdersMutation = (mutationFunc) => {
   return useMutation({
     mutationFn: mutationFunc,
     onSuccess: () => {
-      queryClient.invalidateQueries("allOrders");
+      queryClient.invalidateQueries(["allOrders", "orders"]);
     },
   });
 };
