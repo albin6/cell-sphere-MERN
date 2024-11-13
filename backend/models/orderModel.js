@@ -39,7 +39,7 @@ const order_schema = new mongoose.Schema({
       order_status: {
         type: String,
         required: true,
-        enum: ["Pending", "Shipped", "Delivered", "Cancelled"],
+        enum: ["Pending", "Shipped", "Delivered", "Cancelled", "Returned"],
         default: "Pending",
       },
       return_request: {
@@ -54,6 +54,10 @@ const order_schema = new mongoose.Schema({
           type: String,
         },
         is_approved: {
+          type: Boolean,
+          default: false,
+        },
+        is_response_send: {
           type: Boolean,
           default: false,
         },

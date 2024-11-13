@@ -4,12 +4,12 @@ import { generateRandomCode } from "../../utils/random-code/randomCodeGenerator"
 const ReturnRequestDetailsModal = ({
   isOpen,
   onClose,
-  request,
+  order,
   returnItem,
   handleReturnRequest,
 }) => {
   if (!isOpen) return null;
-  console.log(request);
+  console.log(order);
   console.log(returnItem);
 
   return (
@@ -32,7 +32,7 @@ const ReturnRequestDetailsModal = ({
             </p>
             <p className="mb-2">
               <span className="font-semibold">Customer:</span>{" "}
-              {request?.user_full_name}
+              {order.user_full_name}
             </p>
           </div>
           <div className="mb-4">

@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import OrderCancellation from "./OrderCancellation";
-import SelectStatus from "./SelectStatus";
 import { useAllOrders, useAllOrdersMutation } from "../../hooks/CustomHooks";
 import {
   cancelOrderAdmin,
@@ -8,7 +6,7 @@ import {
   getOrders,
   responsForReturnRequest,
 } from "../../utils/order/orderCRUD";
-import toast from "react-hot-toast";
+import { toast } from "react-toastify";
 import NoOrdersFoundAdmin from "./NoOrderFoundAdmin";
 import OrderDetails from "../user/my-orders/OrderDetails";
 import { Button } from "../../components/ui/ui-components";
@@ -27,6 +25,7 @@ export default function Component() {
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const [itemChoosed, setItemChoosed] = useState(null);
   const [sku, setSku] = useState(null);
   const [returnItem, setReturnItem] = useState(null);
 
@@ -44,8 +43,6 @@ export default function Component() {
     responsForReturnRequest
   );
 
-  const [isRepsonseSend, setIsResponseSend] = useState(false);
-
   // ------------------------------------------------------------------------------
 
   const [isReturnRequestDetailsModalOpen, setIsReturnRequestDetailsModalOpen] =
@@ -55,17 +52,17 @@ export default function Component() {
     console.log(`Approved request ${isApproved}`);
     setIsReturnRequestDetailsModalOpen(false);
     respondForRequest(
-      { isApproved, productVariant },
+      { isApproved, productVariant, orderId },
       {
         onSuccess: () => {
           if (isApproved) {
-            toast.success("Return request approved", {
+            return toast.success("Return request approved", {
               position: "top-center",
             });
-            setIsResponseSend(true);
           } else {
-            toast.error("Return request rejected", { position: "top-center" });
-            setIsResponseSend(true);
+            return toast.error("Return request rejected", {
+              position: "top-center",
+            });
           }
         },
       }
@@ -90,10 +87,13 @@ export default function Component() {
           toast.success("Order Status Updated Successfully", {
             position: "top-center",
           }),
-        onError: () =>
-          toast.error("Error on changing order status", {
-            position: "top-center",
-          }),
+        onError: (error) =>
+          toast.error(
+            error.response.data.message || "Error while changing status",
+            {
+              position: "top-center",
+            }
+          ),
       }
     );
   };
@@ -172,7 +172,8 @@ export default function Component() {
                                   value={item.order_status}
                                   disabled={
                                     item.order_status === "Cancelled" ||
-                                    item.order_status === "Delivered"
+                                    item.order_status === "Delivered" ||
+                                    item.order_status === "Returned"
                                   }
                                   onChange={(e) =>
                                     handleStatusChange(
@@ -193,7 +194,18 @@ export default function Component() {
                                 </select>
                               </div>
 
-                              {item.order_status === "Cancelled" ? (
+                              {item.order_status == "Returned" ? (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className={
+                                    "bg-red-600 hover:bg-red-500 opacity-55 text-white"
+                                  }
+                                  disabled={true}
+                                >
+                                  Returned
+                                </Button>
+                              ) : item.order_status === "Cancelled" ? (
                                 <Button
                                   variant="destructive"
                                   size="sm"
@@ -233,13 +245,21 @@ export default function Component() {
                               )}
                               {item.return_request?.is_requested && (
                                 <button
-                                  className="bg-gray-800 text-white px-2 py-1"
+                                  className={`bg-gray-800 text-white px-2 py-2 rounded ${
+                                    item.return_request?.is_response_send &&
+                                    "opacity-50"
+                                  }`}
+                                  disabled={
+                                    item.return_request?.is_response_send
+                                  }
                                   onClick={() => {
+                                    setOrderId(order._id);
                                     setReturnItem(item);
+                                    setItemChoosed(order);
                                     setIsReturnRequestDetailsModalOpen(true);
                                   }}
                                 >
-                                  {isRepsonseSend
+                                  {item.return_request?.is_response_send
                                     ? "Responce Already Send"
                                     : "View Return Request"}
                                 </button>
@@ -262,6 +282,7 @@ export default function Component() {
                   <td className="p-2">
                     <Button
                       onClick={() => {
+                        setItemChoosed(order);
                         setSelectedOrderId(order._id);
                         setIsOrderDetailsModalOpen(true);
                       }}
@@ -276,7 +297,7 @@ export default function Component() {
                 <ReturnRequestDetailsModal
                   isOpen={isReturnRequestDetailsModalOpen}
                   onClose={() => setIsReturnRequestDetailsModalOpen(false)}
-                  request={order}
+                  order={itemChoosed}
                   returnItem={returnItem}
                   handleReturnRequest={handleReturnRequest}
                 />

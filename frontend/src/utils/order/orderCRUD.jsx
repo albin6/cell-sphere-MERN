@@ -74,6 +74,7 @@ export const requestForReturningProduct = async ({
 export const responsForReturnRequest = async ({
   isApproved,
   productVariant,
+  orderId,
 }) => {
   console.log(isApproved, productVariant);
   const response = await adminAxiosInstance.patch(
@@ -83,5 +84,6 @@ export const responsForReturnRequest = async ({
       productVariant,
     }
   );
+  console.log("api called");
   return response.data;
 };

@@ -1,22 +1,35 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { cancelOrder } from "../../../utils/order/orderCRUD";
+import {
+  cancelOrder,
+  requestForReturningProduct,
+} from "../../../utils/order/orderCRUD";
 import { useOrderDetailsMutation } from "../../../hooks/CustomHooks";
 import { axiosInstance } from "../../../config/axiosInstance";
 import { FileDown, Loader2 } from "lucide-react";
 import FailedPayment from "../paypal-payment/FailedPayment";
 import { generateRandomCode } from "../../../utils/random-code/randomCodeGenerator";
+import ReturnRequestModal from "./ReturnRequestModal";
 
 export default function OrderCard({ order, refetch }) {
+  console.log(order);
   const navigate = useNavigate();
   const [showCancelModal, setShowCancelModal] = useState(false);
 
   const { mutate: cancel_order } = useOrderDetailsMutation(cancelOrder);
+  const { mutate: returnRequest } = useOrderDetailsMutation(
+    requestForReturningProduct
+  );
 
   const [sku, setSku] = useState(null);
 
   const [generatingInvoice, setGeneratingInvoice] = useState(null);
+
+  const [productNameToReturn, setProductNameToReturn] = useState("");
+  const [productVariantToReturn, setProductVariantToReturn] = useState(null);
+  const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
+  const [orderId, setOrderId] = useState(null);
 
   const [isRepaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [anyRepaymentLeft, setAnyRepaymentLeft] = useState(null);
@@ -190,10 +203,30 @@ export default function OrderCard({ order, refetch }) {
                   {item.status}
                 </div>
                 <div className="space-x-2 flex">
-                  {item.status === "Delivered" &&
-                  item.return_eligible === "Eligible for return" ? (
-                    <button className="w-full sm:w-auto bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50 transition-colors duration-200">
-                      Return
+                  {item.status == "Returned" ? (
+                    <button
+                      className="cursor-not-allowed w-full sm:w-auto bg-gray-300 text-gray-500 px-3 py-1 rounded opacity-50"
+                      disabled
+                    >
+                      Returned
+                    </button>
+                  ) : item.status === "Delivered" &&
+                    item.return_eligible === "Eligible for return" ? (
+                    <button
+                      onClick={() => {
+                        setOrderId(order.id);
+                        setProductNameToReturn(item.productName);
+                        setProductVariantToReturn(item.sku);
+                        setIsRequestModalOpen(true);
+                      }}
+                      className={`w-full sm:w-auto ${
+                        item.return_request?.is_requested && "opacity-50"
+                      } bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600`}
+                      disabled={item.return_request?.is_requested}
+                    >
+                      {item.return_request?.is_requested
+                        ? "Return request send"
+                        : "Return"}
                     </button>
                   ) : item.status === "Cancelled" ? (
                     <button
@@ -232,6 +265,15 @@ export default function OrderCard({ order, refetch }) {
           </div>
         )}
       </div>
+
+      <ReturnRequestModal
+        isOpen={isRequestModalOpen}
+        onClose={() => setIsRequestModalOpen(false)}
+        productName={productNameToReturn}
+        productVariant={productVariantToReturn}
+        orderId={orderId}
+        handleReturnRequest={returnRequest}
+      />
 
       {isRepaymentModalOpen && (
         <FailedPayment

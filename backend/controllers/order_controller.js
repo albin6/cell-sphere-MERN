@@ -256,6 +256,7 @@ export const get_user_specific_orders = AsyncHandler(async (req, res) => {
             Date.now() <= eligibleReturnDate
               ? "Eligible for return"
               : "Not eligible to return",
+          return_request: item.return_request,
         };
       }),
       id: order._id,
@@ -342,8 +343,11 @@ export const cancel_order = AsyncHandler(async (req, res) => {
   orderItem.order_status = "Cancelled";
 
   // Handle refund if payment method is Wallet or Paypal
-  if (["Wallet", "Paypal", "Razorpay"].includes(order.payment_method)) {
-    let user_wallet = await Wallet.findOne({ user: req.user.id });
+  if (
+    ["Wallet", "Paypal", "Razorpay"].includes(order.payment_method) &&
+    order.payment_status == "Paid"
+  ) {
+    let user_wallet = await Wallet.findOne({ user: order.user });
 
     if (!user_wallet) {
       user_wallet = new Wallet({
@@ -451,6 +455,7 @@ export const get_all_orders = AsyncHandler(async (req, res) => {
               is_approved: item.return_request.is_approved,
               reason: item.return_request.reason || "",
               comment: item.return_request.comment || "",
+              is_response_send: item.return_request?.is_response_send,
             },
           };
         }),
@@ -483,6 +488,14 @@ export const update_order_status = AsyncHandler(async (req, res) => {
         .json({ success: false, message: "Order not found" });
     }
 
+    if (order.payment_status == "Failed" && new_status == "Delivered") {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Cannot set the status to delivered without completing the payment",
+      });
+    }
+
     console.log(order);
     const item = order.order_items.find(
       (orderItem) => orderItem.variant == sku
@@ -496,7 +509,6 @@ export const update_order_status = AsyncHandler(async (req, res) => {
     }
 
     item.order_status = new_status;
-    let sales_id;
     await SalesReport.updateOne(
       { orderId: order._id, product: item.product },
       { deliveryStatus: new_status }
@@ -515,7 +527,7 @@ export const update_order_status = AsyncHandler(async (req, res) => {
       }
 
       if (order.payment_method !== "Cash on Delivery") {
-        let user_wallet = await Wallet.findOne({ user: req.user.id });
+        let user_wallet = await Wallet.findOne({ user: order.user });
         if (!user_wallet) {
           user_wallet = new Wallet({
             user: req.user.id,
@@ -603,10 +615,82 @@ export const response_to_return_request = AsyncHandler(async (req, res) => {
     {
       $set: {
         "order_items.$.return_request.is_approved": isApproved,
+        "order_items.$.return_request.is_response_send": true,
       },
     },
     { new: true }
   );
+
+  if (isApproved) {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    console.log(order);
+    const item = order.order_items.find(
+      (orderItem) => orderItem.variant == productVariant
+    );
+
+    console.log(item);
+    if (!item) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found in order" });
+    }
+
+    item.order_status = "Returned";
+    await SalesReport.updateOne(
+      { orderId: order._id, product: item.product },
+      { deliveryStatus: "Returned" }
+    );
+    const { product, variant, quantity, price, discount } = item;
+
+    const productData = await Product.findById(product);
+    if (productData) {
+      const variantData = productData.variants.find((v) => v.sku === variant);
+      if (variantData) {
+        console.log("quantity updated to " + variantData);
+        variantData.stock += quantity;
+        await productData.save();
+      }
+    }
+
+    let user_wallet = await Wallet.findOne({ user: order.user });
+    if (!user_wallet) {
+      user_wallet = new Wallet({
+        user: req.user.id,
+        balance: 0,
+        transactions: [],
+      });
+    }
+
+    console.log("user wallet +=============>", user_wallet);
+
+    const refundAmount = price * (1 - discount / 100);
+    console.log(refundAmount);
+    user_wallet.balance += refundAmount;
+
+    await SalesReport.updateOne(
+      { orderId: order._id, product: item.product },
+      { finalAmount: refundAmount }
+    );
+
+    user_wallet.transactions.push({
+      transaction_date: new Date(),
+      transaction_type: "credit",
+      transaction_status: "completed",
+      amount: refundAmount,
+    });
+
+    await user_wallet.save();
+
+    await order.save();
+  }
+
+  console.log("after updating response for return request ====>", order_data);
 
   if (!order_data) {
     return res.status(404).json({ message: "Order or variant not found" });
