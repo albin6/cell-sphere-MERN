@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 import React, { useEffect, useState } from "react";
 import {
   Clock1Icon,
-  DollarSignIcon,
+  IndianRupee,
   Menu,
   ShoppingBasket,
   UserIcon,
@@ -76,8 +76,10 @@ export default function Dashboard() {
             />
             <StatCard
               title="Total Sales"
-              value={`${totalSales ? Number(totalSales).toFixed(2) : 0}`}
-              icon={<DollarSignIcon />}
+              value={`₹ ${
+                totalSales ? Number(totalSales).toLocaleString() : 0
+              }`}
+              icon={<IndianRupee />}
             />
             <StatCard
               title="Pending Orders"

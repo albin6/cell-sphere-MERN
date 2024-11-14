@@ -231,7 +231,8 @@ export const get_user_specific_orders = AsyncHandler(async (req, res) => {
 
   const orders = await Order.find({ user: user_id })
     .populate("user")
-    .populate("order_items.product");
+    .populate("order_items.product")
+    .sort({ placed_at: -1 });
 
   const order_data = orders.map((order) => {
     const eligibleReturnDate = return_eligible_date(order.placed_at);

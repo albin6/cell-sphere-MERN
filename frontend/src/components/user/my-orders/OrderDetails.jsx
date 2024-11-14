@@ -206,19 +206,20 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
               Order# {generateRandomCode()} | Delivery By{" "}
               {order && order.deliveryBy}
             </p>
-
-            <button
-              onClick={() => generateInvoice(orderId)}
-              disabled={generatingInvoice === orderId}
-              className="px-3 py-1 text-sm border flex justify-center items-center border-gray-300 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors duration-200"
-            >
-              {generatingInvoice === orderId ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <FileDown className="h-4 w-4 mr-2" />
-              )}
-              {generatingInvoice === orderId ? "Generating..." : "Invoice"}
-            </button>
+            {order.orders.payment_status !== "Failed" && (
+              <button
+                onClick={() => generateInvoice(orderId)}
+                disabled={generatingInvoice === orderId}
+                className="px-3 py-1 text-sm border flex justify-center items-center border-gray-300 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50 transition-colors duration-200"
+              >
+                {generatingInvoice === orderId ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <FileDown className="h-4 w-4 mr-2" />
+                )}
+                {generatingInvoice === orderId ? "Generating..." : "Invoice"}
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { useAllOrders, useAllOrdersMutation } from "../../hooks/CustomHooks";
 import {
@@ -9,7 +11,6 @@ import {
 import { toast } from "react-toastify";
 import NoOrdersFoundAdmin from "./NoOrderFoundAdmin";
 import OrderDetails from "../user/my-orders/OrderDetails";
-import { Button } from "../../components/ui/ui-components";
 import { X } from "lucide-react";
 import Pagination from "../user/Pagination";
 import ConfirmationModal from "./ConfirmationModal";
@@ -28,6 +29,8 @@ export default function Component() {
   const [itemChoosed, setItemChoosed] = useState(null);
   const [sku, setSku] = useState(null);
   const [returnItem, setReturnItem] = useState(null);
+  const [isReturnRequestDetailsModalOpen, setIsReturnRequestDetailsModalOpen] =
+    useState(false);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -38,39 +41,9 @@ export default function Component() {
   );
   const { mutate: cancel_order } = useAllOrdersMutation(cancelOrderAdmin);
   const { mutate: changeStatus } = useAllOrdersMutation(changeOrderStatus);
-
   const { mutate: respondForRequest } = useAllOrdersMutation(
     responsForReturnRequest
   );
-
-  // ------------------------------------------------------------------------------
-
-  const [isReturnRequestDetailsModalOpen, setIsReturnRequestDetailsModalOpen] =
-    useState(false);
-
-  const handleReturnRequest = (isApproved, productVariant) => {
-    console.log(`Approved request ${isApproved}`);
-    setIsReturnRequestDetailsModalOpen(false);
-    respondForRequest(
-      { isApproved, productVariant, orderId },
-      {
-        onSuccess: () => {
-          if (isApproved) {
-            return toast.success("Return request approved", {
-              position: "top-center",
-            });
-          } else {
-            return toast.error("Return request rejected", {
-              position: "top-center",
-            });
-          }
-        },
-      }
-    );
-    // Add your approval logic here
-  };
-
-  // ------------------------------------------------------------------------------
 
   useEffect(() => {
     if (data) {
@@ -115,6 +88,26 @@ export default function Component() {
     );
   };
 
+  const handleReturnRequest = (isApproved, productVariant) => {
+    setIsReturnRequestDetailsModalOpen(false);
+    respondForRequest(
+      { isApproved, productVariant, orderId },
+      {
+        onSuccess: () => {
+          if (isApproved) {
+            return toast.success("Return request approved", {
+              position: "top-center",
+            });
+          } else {
+            return toast.error("Return request rejected", {
+              position: "top-center",
+            });
+          }
+        },
+      }
+    );
+  };
+
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
   }
@@ -128,7 +121,7 @@ export default function Component() {
       <h1 className="text-2xl font-bold mb-6">Order Management</h1>
       <div className="overflow-x-auto">
         <table className="w-full min-w-full">
-          <thead className="bg-grayhandleStatusChange-100">
+          <thead className="bg-gray-100">
             <tr>
               <th className="p-2 text-left">Order ID</th>
               <th className="p-2 text-left">Customer</th>
@@ -139,9 +132,9 @@ export default function Component() {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order, index) => (
-              <>
-                <tr key={order._id} className="border-b">
+            {orders.map((order) => (
+              <React.Fragment key={order._id}>
+                <tr className="border-b">
                   <td className="p-2">{generateRandomCode()}</td>
                   <td className="p-2">{order.user_full_name}</td>
                   <td className="p-2">
@@ -160,9 +153,9 @@ export default function Component() {
                               Status: {item.order_status}
                             </p>
                             <div className="flex flex-wrap items-center gap-2 mt-2">
-                              <div className="w-48">
+                              <div className="w-full sm:w-48">
                                 <label
-                                  htmlFor={`status-select-${orderId}`}
+                                  htmlFor={`status-select-${order._id}`}
                                   className="sr-only"
                                 >
                                   Change order status
@@ -193,59 +186,42 @@ export default function Component() {
                                   <option value="Cancelled">Cancelled</option>
                                 </select>
                               </div>
-
-                              {item.order_status == "Returned" ? (
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  className={
-                                    "bg-red-600 hover:bg-red-500 opacity-55 text-white"
-                                  }
-                                  disabled={true}
+                              {item.order_status === "Returned" ? (
+                                <button
+                                  className="bg-red-600 hover:bg-red-500 opacity-55 text-white px-3 py-1 rounded text-sm"
+                                  disabled
                                 >
                                   Returned
-                                </Button>
+                                </button>
                               ) : item.order_status === "Cancelled" ? (
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  className={
-                                    "bg-red-600 hover:bg-red-500 opacity-55 text-white"
-                                  }
-                                  disabled={true}
+                                <button
+                                  className="bg-red-600 hover:bg-red-500 opacity-55 text-white px-3 py-1 rounded text-sm"
+                                  disabled
                                 >
                                   Cancelled
-                                </Button>
+                                </button>
                               ) : item.order_status === "Delivered" ? (
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  className={
-                                    "bg-red-600 hover:bg-red-500 opacity-55 text-white"
-                                  }
-                                  disabled={true}
+                                <button
+                                  className="bg-red-600 hover:bg-red-500 opacity-55 text-white px-3 py-1 rounded text-sm"
+                                  disabled
                                 >
                                   Delivered
-                                </Button>
+                                </button>
                               ) : (
-                                <Button
+                                <button
                                   onClick={() => {
                                     setIsConfirmationModalOpen(true);
                                     setOrderId(order._id);
                                     setSku(item.sku);
                                   }}
-                                  variant="destructive"
-                                  size="sm"
-                                  className={
-                                    "bg-red-600 hover:bg-red-500 text-white"
-                                  }
+                                  className="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded text-sm"
                                 >
                                   Cancel Product
-                                </Button>
+                                </button>
                               )}
                               {item.return_request?.is_requested && (
                                 <button
-                                  className={`bg-gray-800 text-white px-2 py-2 rounded ${
+                                  className={`bg-gray-800 text-white px-2 py-1 rounded text-sm ${
                                     item.return_request?.is_response_send &&
                                     "opacity-50"
                                   }`}
@@ -260,7 +236,7 @@ export default function Component() {
                                   }}
                                 >
                                   {item.return_request?.is_response_send
-                                    ? "Responce Already Send"
+                                    ? "Response Already Sent"
                                     : "View Return Request"}
                                 </button>
                               )}
@@ -280,28 +256,19 @@ export default function Component() {
                       .toFixed(2)}
                   </td>
                   <td className="p-2">
-                    <Button
+                    <button
                       onClick={() => {
                         setItemChoosed(order);
                         setSelectedOrderId(order._id);
                         setIsOrderDetailsModalOpen(true);
                       }}
-                      variant="secondary"
-                      size="sm"
-                      className={"bg-gray-800 hover:bg-gray-700 text-white"}
+                      className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm"
                     >
                       Order Details
-                    </Button>
+                    </button>
                   </td>
                 </tr>
-                <ReturnRequestDetailsModal
-                  isOpen={isReturnRequestDetailsModalOpen}
-                  onClose={() => setIsReturnRequestDetailsModalOpen(false)}
-                  order={itemChoosed}
-                  returnItem={returnItem}
-                  handleReturnRequest={handleReturnRequest}
-                />
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
@@ -322,14 +289,13 @@ export default function Component() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
             <div className="flex justify-end p-2">
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={() => setIsOrderDetailsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
               >
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close</span>
-              </Button>
+              </button>
             </div>
             <div className="overflow-y-auto max-h-[calc(90vh-4rem)]">
               <OrderDetails orderId={selectedOrderId} />
@@ -337,6 +303,13 @@ export default function Component() {
           </div>
         </div>
       )}
+      <ReturnRequestDetailsModal
+        isOpen={isReturnRequestDetailsModalOpen}
+        onClose={() => setIsReturnRequestDetailsModalOpen(false)}
+        order={itemChoosed}
+        returnItem={returnItem}
+        handleReturnRequest={handleReturnRequest}
+      />
     </div>
   );
 }
