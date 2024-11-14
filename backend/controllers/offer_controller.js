@@ -5,8 +5,6 @@ import Product from "../models/productModel.js";
 // @desc for getting all offers
 // GET /api/admin/offers
 export const get_all_offers = AsyncHandler(async (req, res) => {
-  console.log("In get_all_offers");
-
   const { page, limit } = req.query;
 
   const skip = (page - 1) * limit;
@@ -23,8 +21,6 @@ export const get_all_offers = AsyncHandler(async (req, res) => {
 // @desc for adding a new offer
 // POST /api/admin/offers
 export const add_new_offer = AsyncHandler(async (req, res) => {
-  console.log("In add_new_offer");
-
   const { name, value, target, targetId, targetName, endDate } = req.body;
 
   const is_offer_already_exists = await Offer.findOne({ target_id: targetId });
@@ -55,8 +51,6 @@ export const add_new_offer = AsyncHandler(async (req, res) => {
         .json({ success: false, message: "Product not found" });
     }
 
-    console.log("pro===>", value > product?.offer?.offer_value);
-
     if (
       value > product?.offer?.offer_value ||
       product?.offer?.offer_value == undefined
@@ -79,16 +73,12 @@ export const add_new_offer = AsyncHandler(async (req, res) => {
     }
   }
 
-  console.log("product added ==>", new_offer);
-
   res.status(201).json({ success: true, new_offer });
 });
 
 // @desc for deleting offer
 // DELETE /api/admin/offers
 export const delete_offer = AsyncHandler(async (req, res) => {
-  console.log("In delete_offer");
-
   const { offerId } = req.body;
 
   const current_offer = await Offer.findById(offerId);
@@ -108,11 +98,6 @@ export const delete_offer = AsyncHandler(async (req, res) => {
       target_id: product_data.category,
     });
 
-    console.log(
-      "is any category offer exists===>",
-      is_any_category_offer_exists
-    );
-
     if (product_data) {
       product_data.offer = is_any_category_offer_exists
         ? is_any_category_offer_exists._id
@@ -130,7 +115,6 @@ export const delete_offer = AsyncHandler(async (req, res) => {
       const is_any_product_offer_exists = await Offer.findOne({
         target_id: product._id,
       });
-      console.log(is_any_product_offer_exists);
       if (product) {
         product.offer = is_any_product_offer_exists
           ? is_any_product_offer_exists._id

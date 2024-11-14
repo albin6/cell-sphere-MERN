@@ -1,15 +1,11 @@
-import {
-  GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
-} from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import AsyncHandler from "express-async-handler";
 
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export const handle_chat = AsyncHandler(async (req, res) => {
-  const userInput = req.body.message; // Get user input from request body
+  const userInput = req.body.message;
 
   const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash",

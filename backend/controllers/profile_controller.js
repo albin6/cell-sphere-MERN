@@ -1,13 +1,8 @@
 import AsyncHandler from "express-async-handler";
 import User from "../models/userModel.js";
-import {
-  compare_password,
-  hash_password,
-} from "../utils/secure-password/password-bcrypt.js";
 
 // for getting user information
 export const get_user_info = AsyncHandler(async (req, res) => {
-  console.log("in get_user_info");
   const user_id = req.user.id;
 
   const user_data = await User.findById(user_id);

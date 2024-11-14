@@ -15,17 +15,9 @@ function generateReferralCode() {
   return `${timestamp}${randomPart}`;
 }
 
-// Connect to MongoDB
 mongoose
-  .connect("mongodb://localhost:27017/cell-sphere", {
-    // Replace with your database URI
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect(process.env.MONGODB_CONNECTION_STRING)
   .then(async () => {
-    console.log("Connected to MongoDB");
-
-    // Find users who don't have a referral code and update them
     const usersWithoutReferralCode = await User.find({
       referral_code: { $exists: false },
     });
@@ -33,12 +25,8 @@ mongoose
     for (let user of usersWithoutReferralCode) {
       user.referral_code = generateReferralCode();
       await user.save();
-      console.log(
-        `Updated user ${user._id} with referral code ${user.referral_code}`
-      );
     }
 
-    console.log("All users updated");
     mongoose.connection.close();
   })
   .catch((error) => {

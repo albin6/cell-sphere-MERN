@@ -24,8 +24,6 @@ export const get_all_brands = AsyncHandler(async (req, res) => {
 
 // POST /api/admin/brands
 export const add_new_brand = AsyncHandler(async (req, res) => {
-  console.log(req.body);
-  console.log(req.file);
   const { name, status } = req.body;
   const logo_path = req.file && req.file.path;
 
@@ -80,11 +78,8 @@ export const update_brand_status = AsyncHandler(async (req, res) => {
 
 // PUT /api/admin/brands
 export const update_brand = AsyncHandler(async (req, res) => {
-  console.log("brands put req body => ", req.body);
   const brand = req.body;
   const logo_path = req?.file && req?.file?.path;
-
-  console.log("brand object:", brand);
 
   if (!brand.id) {
     return res
@@ -123,8 +118,6 @@ export const update_brand = AsyncHandler(async (req, res) => {
   }
 
   await brand_data.save();
-
-  console.log("after saving changes => ", brand_data);
 
   res.json({ success: true, brand_data });
 });

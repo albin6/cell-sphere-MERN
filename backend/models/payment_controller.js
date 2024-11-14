@@ -4,7 +4,6 @@ import Order from "./orderModel.js";
 // Failed payment repayment
 // PUT /api/users/re-payment
 export const re_payment = AsyncHandler(async (req, res) => {
-  console.log("in re payment");
   const { payment_status, orderId } = req.body;
 
   const updated_order_payment = await Order.findByIdAndUpdate(

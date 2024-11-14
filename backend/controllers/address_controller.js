@@ -3,8 +3,6 @@ import Address from "../models/addressModel.js";
 
 // for getting all addresses
 export const get_all_addresses = AsyncHandler(async (req, res) => {
-  console.log("In get all addresses");
-
   if (!req.user) {
     return res
       .status(401)
@@ -16,14 +14,11 @@ export const get_all_addresses = AsyncHandler(async (req, res) => {
 
   const addresses_data = await Address.find({ user: userId });
 
-  console.log("addresses_data => ", addresses_data);
   res.status(200).json({ success: true, addresses: addresses_data });
 });
 
 // for adding new address
 export const add_new_address = AsyncHandler(async (req, res) => {
-  console.log("In add new address");
-
   if (!req.user) {
     return res
       .status(401)
@@ -67,16 +62,9 @@ export const add_new_address = AsyncHandler(async (req, res) => {
 
 // for updating an existing address
 export const update_address = AsyncHandler(async (req, res) => {
-  console.log("In update address");
-
   const user_id = req.user.id;
   const address_id = req.params.addressId;
   const address_data = req.body;
-
-  console.log("User :", req.user);
-  console.log("Address Data:", req.body);
-
-  console.log(user_id, address_id);
 
   const address = await Address.findOne({ _id: address_id, user: user_id });
 
@@ -106,8 +94,6 @@ export const update_address = AsyncHandler(async (req, res) => {
 
 // for deleting an existing address
 export const delete_address = AsyncHandler(async (req, res) => {
-  console.log("In delete address");
-
   const address_id = req.params.addressId;
 
   if (!address_id) {

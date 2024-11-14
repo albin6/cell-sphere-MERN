@@ -12,15 +12,12 @@ const client = new OAuth2Client();
 export const google_authentication = AsyncHandler(async (req, res) => {
   const { credential, client_id } = req.body;
 
-  console.log("ivide ethiii");
-
   const ticket = await client.verifyIdToken({
     idToken: credential,
     audience: client_id,
   });
 
   const payload = ticket.getPayload();
-  console.log(payload);
   const user_id = payload["sub"]; // Google's user id
   const email = payload["email"]; // User's email from Google
   const first_name = payload["given_name"]; // User's name from Google
@@ -29,7 +26,6 @@ export const google_authentication = AsyncHandler(async (req, res) => {
 
   // Check if the user already exists in the database
   let user = await User.findOne({ email });
-  console.log(user);
   if (!user) {
     const new_user = await User.create({
       googleId: user_id,

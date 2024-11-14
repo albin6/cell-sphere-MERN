@@ -17,11 +17,8 @@ const mail_sender = async (email, title, body) => {
       subject: title,
       html: body,
     });
-    console.log("Email info", info);
     return info;
-  } catch (error) {
-    console.log(error);
-  }
+  } catch (error) {}
 };
 
 export default mail_sender;

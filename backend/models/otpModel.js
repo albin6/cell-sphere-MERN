@@ -19,8 +19,6 @@ const otp_schema = new mongoose.Schema({
 otp_schema.index({ createdAt: 1 }, { expireAfterSeconds: 60 });
 
 otp_schema.pre("save", async function (next) {
-  console.log("New document saved to the database");
-  // Only send an email when a new document is created
   if (this.isNew) {
     await sendVerificationEmail(this.email, this.otp);
   }

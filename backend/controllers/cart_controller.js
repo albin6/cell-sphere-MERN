@@ -6,8 +6,6 @@ import mongoose from "mongoose";
 // for getting cart products
 // ----------------------------------------------------------------------------
 export const get_cart_products = AsyncHandler(async (req, res) => {
-  console.log("In get_cart_products");
-
   const user_id = req.user.id;
 
   const cart_data = await Cart.findOne({ user: user_id }).populate({
@@ -51,11 +49,8 @@ export const get_cart_products = AsyncHandler(async (req, res) => {
     });
   }
 
-  console.log(cart_data);
-
   if (!cart_data) {
     const cart_data = await Cart.create({ user: user_id });
-    console.log(cart_data);
     return res.status(200).json({ success: true, cart_data });
   }
 
@@ -66,68 +61,54 @@ export const get_cart_products = AsyncHandler(async (req, res) => {
 // for adding products to cart
 // ----------------------------------------------------------------------------
 export const add_product_to_cart = AsyncHandler(async (req, res) => {
-  console.log("in add_product_to_cart");
-  try {
-    const user_id = req.user.id;
-    const { sku, price } = req.body.selectedVariant;
-    const { discount, offer } = req.body.product;
-    const quantity = 1;
+  const user_id = req.user.id;
+  const { sku, price } = req.body.selectedVariant;
+  const { discount } = req.body.product;
+  const quantity = 1;
 
-    console.log(price);
+  const cartItem = {
+    product: req.body.product._id,
+    variant: sku,
+    quantity,
+    price,
+    discount: discount,
+    totalPrice: quantity * price,
+  };
 
-    const cartItem = {
-      product: req.body.product._id,
-      variant: sku,
-      quantity,
-      price,
-      discount: discount,
-      totalPrice: quantity * price,
-    };
+  let cart = await Cart.findOne({ user: user_id });
 
-    let cart = await Cart.findOne({ user: user_id });
+  if (!cart) {
+    cart = new Cart({
+      user: user_id,
+      items: [cartItem],
+    });
+  } else {
+    const productExists = cart.items.some(
+      (item) =>
+        item.product.toString() === req.body.product._id && item.variant === sku
+    );
 
-    if (!cart) {
-      cart = new Cart({
-        user: user_id,
-        items: [cartItem],
-      });
-    } else {
-      const productExists = cart.items.some(
-        (item) =>
-          item.product.toString() === req.body.product._id &&
-          item.variant === sku
-      );
-
-      if (productExists) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Product already in Cart" });
-      }
-      cart.items.push(cartItem);
+    if (productExists) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Product already in Cart" });
     }
-
-    await cart.save();
-    console.log("Product added to cart successfully:", cart);
-
-    res.json({ success: true, cart });
-  } catch (error) {
-    console.error("Error adding product to cart:", error);
+    cart.items.push(cartItem);
   }
+
+  await cart.save();
+
+  res.json({ success: true, cart });
 });
 
 // ----------------------------------------------------------------------------
 // for checking the product variant exists in the cart
 // ----------------------------------------------------------------------------
 export const check_product_variant_in_cart = AsyncHandler(async (req, res) => {
-  console.log("in check_product_variant_in_cart");
-
   const user_id = req.user.id;
   const { product_id, variant_sku } = req.query;
 
-  console.log(product_id, variant_sku);
-
   const cart_data = await Cart.findOne({ user: user_id });
-  console.log(cart_data);
   if (!cart_data) {
     return res.status(404).json({ success: false, message: "Cart not found" });
   }
@@ -138,8 +119,6 @@ export const check_product_variant_in_cart = AsyncHandler(async (req, res) => {
     (item) =>
       item.product.equals(productObjectId) && item.variant === variant_sku
   );
-
-  console.log(cart_item);
 
   if (!cart_item) {
     return res
@@ -154,22 +133,15 @@ export const check_product_variant_in_cart = AsyncHandler(async (req, res) => {
 // for updating the quantity of product in the cart
 // ----------------------------------------------------------------------------
 export const update_product_quantity = AsyncHandler(async (req, res) => {
-  console.log("in update_product_quantity");
   const user_id = req.user.id;
   const product_sku = req.params.productSKU;
   const quantity = req.body.quantity;
 
-  console.log(user_id, product_sku, quantity);
-
   const cart_data = await Cart.findOne({ user: user_id });
-
-  console.log(cart_data);
 
   cart_data.items.map((item) =>
     item.variant === product_sku ? (item.quantity = quantity) : item.quantity
   );
-
-  console.log("After updating ===>", cart_data);
 
   await cart_data.save();
 
@@ -180,10 +152,7 @@ export const update_product_quantity = AsyncHandler(async (req, res) => {
 // for deleting a product from the cart
 // ----------------------------------------------------------------------------
 export const delete_product = AsyncHandler(async (req, res) => {
-  console.log("in delete_product");
   const product_sku = req.params.productSKU;
-
-  console.log(product_sku);
 
   const cart_data = await Cart.findOneAndUpdate(
     { user: req.user.id },
@@ -199,8 +168,6 @@ export const delete_product = AsyncHandler(async (req, res) => {
 
     await cart.save();
   }
-
-  console.log("after removing product from cart ===>", cart_data);
 
   res.json({ success: true, cart_data });
 });

@@ -21,7 +21,6 @@ export const get_category_product = AsyncHandler(async (req, res) => {
 export const get_products_of_category = AsyncHandler(async (req, res) => {
   const categoryId = req.params.categoryId;
 
-  // Validate that the categoryId is a valid ObjectId
   if (!mongoose.Types.ObjectId.isValid(categoryId)) {
     return res.status(400).json({
       success: false,
@@ -35,11 +34,8 @@ export const get_products_of_category = AsyncHandler(async (req, res) => {
   const sort = req.query.sort || "featured";
   const skip = (page - 1) * limit;
 
-  // Extract filter parameters
   const { brand, os, ram, storage } = req.query;
-  console.log(brand, os, ram, storage);
 
-  // Build the filter object
   const filter = {
     category: categoryId,
     is_active: true,
@@ -143,9 +139,7 @@ export const get_products_of_category = AsyncHandler(async (req, res) => {
 
 export const get_products_of_brand = AsyncHandler(async (req, res) => {
   const brandId = req.params.brandId;
-  console.log("in get products of brand");
 
-  // Validate that the brandId is a valid ObjectId
   if (!mongoose.Types.ObjectId.isValid(brandId)) {
     return res.status(400).json({
       success: false,
@@ -153,21 +147,14 @@ export const get_products_of_brand = AsyncHandler(async (req, res) => {
     });
   }
 
-  console.log("id kollaam");
-
   const term = req.query.term || "";
-  const page = parseInt(req.query.page) || 1; // Default to page 1 if not provided
-  const limit = parseInt(req.query.limit) || 6; // Default to 6 items per page
-  const sort = String(req.query.sort) || "featured"; // Default to newest if not provided
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 6;
+  const sort = String(req.query.sort) || "featured";
   const skip = (page - 1) * limit;
 
-  console.log(term, page, limit, sort);
-  // Extract specific filters from the query
   const { storage, ram } = req.query;
 
-  console.log(storage, ram);
-
-  // Build the filter object for the query
   const filter = {
     brand: brandId,
     is_active: true,
@@ -181,8 +168,6 @@ export const get_products_of_brand = AsyncHandler(async (req, res) => {
   };
   const totalProducts = await Product.countDocuments(filter);
   const totalPages = Math.ceil(totalProducts / limit);
-
-  console.log(filter);
 
   const sortOptions = {};
   switch (sort) {
@@ -217,8 +202,6 @@ export const get_products_of_brand = AsyncHandler(async (req, res) => {
       break;
   }
 
-  console.log(sortOptions);
-
   const products = await Product.find(filter)
     .populate("category")
     .populate("brand")
@@ -242,21 +225,17 @@ export const get_products_of_brand = AsyncHandler(async (req, res) => {
 });
 
 export const get_listing_products_details = AsyncHandler(async (req, res) => {
-  console.log("Received query params:", req.query);
-
   const term = req.query.term || "";
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 6;
   const sort = req.query.sort || "featured";
   const skip = (page - 1) * limit;
 
-  // Add filtering
   const filter = { is_active: true };
 
   if (req.query.brand) {
     const brandNames = req.query.brand.split(",");
     const brands = await Brand.find({ name: { $in: brandNames } });
-    console.log("Found brands:", brands);
 
     if (brands.length > 0) {
       filter["brand"] = { $in: brands.map((brand) => brand._id) };
@@ -279,9 +258,6 @@ export const get_listing_products_details = AsyncHandler(async (req, res) => {
     filter["name"] = { $regex: term, $options: "i" };
   }
 
-  console.log("Applied filter:", filter);
-
-  // Prepare sort object
   const sortObj = {};
   switch (sort) {
     case "featured":
@@ -315,7 +291,6 @@ export const get_listing_products_details = AsyncHandler(async (req, res) => {
       break;
   }
 
-  // Use aggregation for efficient querying
   const [products, totalProducts, categories, brands] = await Promise.all([
     Product.aggregate([
       { $match: filter },
@@ -347,9 +322,6 @@ export const get_listing_products_details = AsyncHandler(async (req, res) => {
   ]);
 
   const totalPages = Math.ceil(totalProducts / limit);
-
-  console.log("Total products after filtering:", totalProducts);
-  console.log("Products returned:", products.length);
 
   res.status(200).json({
     success: true,

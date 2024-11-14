@@ -32,7 +32,6 @@ import {
   get_all_addresses,
   update_address,
 } from "../controllers/address_controller.js";
-import { normalizeUserMiddleware } from "../middleware/normalize_user_middleware.js";
 import {
   get_user_info,
   update_user_info,

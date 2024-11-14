@@ -12,7 +12,6 @@ const getSalesReportData = async (startDate, endDate, period) => {
     const start = new Date(startDate).setHours(0, 0, 0, 0);
     const end = new Date(endDate).setHours(23, 59, 59, 999);
     dateFilter = { orderDate: { $gte: new Date(start), $lte: new Date(end) } };
-    console.log("Custom date range filter:", dateFilter);
   }
 
   if (period === "daily") {
@@ -49,7 +48,6 @@ const getSalesReportData = async (startDate, endDate, period) => {
 };
 
 export const get_sales_report = AsyncHandler(async (req, res) => {
-  console.log(req.query);
   const {
     startDate = null,
     endDate = null,
@@ -60,22 +58,12 @@ export const get_sales_report = AsyncHandler(async (req, res) => {
 
   const skip = (page - 1) * limit;
 
-  console.log(
-    "Query Parameters - startDate:",
-    startDate,
-    "endDate:",
-    endDate,
-    "period:",
-    period
-  );
-
   let dateFilter = {};
 
   if (period === "custom" && startDate && endDate) {
     const start = new Date(startDate).setHours(0, 0, 0, 0);
     const end = new Date(endDate).setHours(23, 59, 59, 999);
     dateFilter = { orderDate: { $gte: new Date(start), $lte: new Date(end) } };
-    console.log("Custom date range filter:", dateFilter);
   }
 
   if (period === "daily") {
@@ -107,8 +95,6 @@ export const get_sales_report = AsyncHandler(async (req, res) => {
       },
     };
   }
-
-  console.log(dateFilter);
 
   const total_sales_report_count = await SalesReport.countDocuments(dateFilter);
   const totalPages = Math.ceil(total_sales_report_count / limit);
@@ -192,17 +178,12 @@ export const download_sales_report_pdf = AsyncHandler(async (req, res) => {
       ]),
     };
 
-    try {
-      await pdfDoc.table(table, {
-        prepareHeader: () => pdfDoc.font("Helvetica-Bold").fontSize(8),
-        prepareRow: (row, i) => pdfDoc.font("Helvetica").fontSize(8),
-        width: 500,
-        columnsSize: [140, 50, 70, 70, 70, 70],
-      });
-    } catch (error) {
-      console.error("Error generating table:", error);
-      // Handle the error appropriately
-    }
+    await pdfDoc.table(table, {
+      prepareHeader: () => pdfDoc.font("Helvetica-Bold").fontSize(8),
+      prepareRow: (row, i) => pdfDoc.font("Helvetica").fontSize(8),
+      width: 500,
+      columnsSize: [140, 50, 70, 70, 70, 70],
+    });
 
     pdfDoc.moveDown(0.5);
     pdfDoc
@@ -282,282 +263,274 @@ const fonts = {
 };
 
 export const generate_order_invoice = AsyncHandler(async (req, res) => {
-  try {
-    const orderId = req.params.orderId;
-    const userId = req.user.id;
+  const orderId = req.params.orderId;
+  const userId = req.user.id;
 
-    const order = await Order.findOne({ _id: orderId, user: userId })
-      .populate("user", "first_name last_name email")
-      .populate("order_items.product", "name");
+  const order = await Order.findOne({ _id: orderId, user: userId })
+    .populate("user", "first_name last_name email")
+    .populate("order_items.product", "name");
 
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
-    }
-
-    const printer = new PdfPrinter(fonts);
-
-    const docDefinition = {
-      content: [
-        {
-          columns: [
-            {
-              width: "*",
-              text: "INVOICE",
-              style: "header",
-            },
-            {
-              width: "auto",
-              table: {
-                widths: ["auto", "auto"],
-                body: [
-                  [
-                    "Order Date:",
-                    { text: order.placed_at.toLocaleDateString(), bold: true },
-                  ],
-                  [
-                    "Delivery By:",
-                    {
-                      text: order.delivery_by.toLocaleDateString(),
-                      bold: true,
-                    },
-                  ],
-                ],
-              },
-              layout: "noBorders",
-            },
-          ],
-        },
-        {
-          canvas: [
-            { type: "line", x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 2 },
-          ],
-        },
-        {
-          columns: [
-            {
-              width: "*",
-              text: "Bill To",
-              style: "subheader",
-            },
-            {
-              width: "*",
-              text: "Ship To",
-              style: "subheader",
-            },
-          ],
-        },
-        {
-          columns: [
-            {
-              width: "*",
-              text: [
-                {
-                  text: `${order.user.first_name} ${order.user.last_name}\n`,
-                  bold: true,
-                },
-                order.user.email,
-              ],
-            },
-            {
-              width: "*",
-              text: [
-                {
-                  text: `${order.shipping_address.address_type}\n`,
-                  bold: true,
-                },
-                `${order.shipping_address.address}\n`,
-                `${order.shipping_address.district}, ${order.shipping_address.state} ${order.shipping_address.zip}\n`,
-                `Phone: ${order.shipping_address.phone}`,
-              ],
-            },
-          ],
-        },
-        { text: "Order Details", style: "subheader", margin: [0, 20, 0, 10] },
-        {
-          table: {
-            headerRows: 1,
-            widths: ["*", "auto", "auto", "auto", "auto", "auto", "auto"],
-            body: [
-              [
-                { text: "Product", style: "tableHeader" },
-                { text: "Variant", style: "tableHeader" },
-                { text: "Qty", style: "tableHeader" },
-                { text: "Price", style: "tableHeader" },
-                { text: "Discount", style: "tableHeader" },
-                { text: "Total", style: "tableHeader" },
-                { text: "Status", style: "tableHeader" },
-              ],
-              ...order.order_items.map((item) => [
-                item.product.name,
-                item.variant,
-                item.quantity.toString(),
-                `RS :${item.price.toFixed(2)}`,
-                `${(
-                  ((item.price - item.total_price) / item.price) *
-                  100
-                ).toFixed(0)}%`,
-                `RS :${item.total_price.toFixed(2)}`,
-                { text: item.order_status, bold: true },
-              ]),
-            ],
-          },
-        },
-        {
-          columns: [
-            { width: "*", text: "" },
-            {
-              width: "auto",
-              style: "totals",
-              table: {
-                widths: ["auto", "auto"],
-                body: [
-                  [
-                    {
-                      text: "Order Summary",
-                      style: "subheader",
-                      colSpan: 2,
-                      alignment: "center",
-                    },
-                    {},
-                  ],
-                  [
-                    "Subtotal:",
-                    {
-                      text: `RS :${order.total_amount.toFixed(2)}`,
-                      alignment: "right",
-                    },
-                  ],
-                  [
-                    "Shipping Fee:",
-                    {
-                      text: `RS :${order.shipping_fee.toFixed(2)}`,
-                      alignment: "right",
-                    },
-                  ],
-                  ...(order.coupon_discount
-                    ? [
-                        [
-                          "Coupon Discount:",
-                          {
-                            text: `RS :${order.coupon_discount.toFixed(2)}`,
-                            alignment: "right",
-                          },
-                        ],
-                      ]
-                    : []),
-                  [
-                    { text: "Total:", bold: true },
-                    {
-                      text: `RS :${order.total_price_with_discount.toFixed(2)}`,
-                      bold: true,
-                      alignment: "right",
-                    },
-                  ],
-                ],
-              },
-              layout: {
-                hLineWidth: function (i, node) {
-                  return i === 0 || i === node.table.body.length ? 2 : 1;
-                },
-                vLineWidth: function (i, node) {
-                  return 0;
-                },
-                hLineColor: function (i, node) {
-                  return i === 0 || i === node.table.body.length
-                    ? "black"
-                    : "gray";
-                },
-                paddingLeft: function (i, node) {
-                  return 10;
-                },
-                paddingRight: function (i, node) {
-                  return 10;
-                },
-                paddingTop: function (i, node) {
-                  return 5;
-                },
-                paddingBottom: function (i, node) {
-                  return 5;
-                },
-              },
-            },
-          ],
-        },
-        {
-          text: "Payment Information",
-          style: "subheader",
-          margin: [0, 20, 0, 5],
-        },
-        {
-          table: {
-            widths: ["auto", "*"],
-            body: [
-              ["Payment Method:", { text: order.payment_method, bold: true }],
-              ["Payment Status:", { text: order.payment_status, bold: true }],
-            ],
-          },
-          layout: {
-            hLineWidth: function (i, node) {
-              return i === 0 || i === node.table.body.length ? 2 : 1;
-            },
-            vLineWidth: function (i, node) {
-              return 0;
-            },
-            hLineColor: function (i, node) {
-              return i === 0 || i === node.table.body.length ? "black" : "gray";
-            },
-            paddingLeft: function (i, node) {
-              return 10;
-            },
-            paddingRight: function (i, node) {
-              return 10;
-            },
-            paddingTop: function (i, node) {
-              return 5;
-            },
-            paddingBottom: function (i, node) {
-              return 5;
-            },
-          },
-        },
-      ],
-      styles: {
-        header: {
-          fontSize: 28,
-          bold: true,
-          margin: [0, 0, 0, 10],
-        },
-        subheader: {
-          fontSize: 16,
-          bold: true,
-          margin: [0, 10, 0, 5],
-        },
-        tableHeader: {
-          bold: true,
-          fontSize: 13,
-          color: "black",
-        },
-        totals: {
-          margin: [0, 30, 0, 0],
-        },
-      },
-      defaultStyle: {
-        fontSize: 10,
-      },
-    };
-
-    const pdfDoc = printer.createPdfKitDocument(docDefinition);
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=invoice-${orderId}.pdf`
-    );
-
-    pdfDoc.pipe(res);
-    pdfDoc.end();
-  } catch (error) {
-    console.error("Error generating invoice:", error);
-    res.status(500).json({ message: "Error generating invoice" });
+  if (!order) {
+    return res.status(404).json({ message: "Order not found" });
   }
+
+  const printer = new PdfPrinter(fonts);
+
+  const docDefinition = {
+    content: [
+      {
+        columns: [
+          {
+            width: "*",
+            text: "INVOICE",
+            style: "header",
+          },
+          {
+            width: "auto",
+            table: {
+              widths: ["auto", "auto"],
+              body: [
+                [
+                  "Order Date:",
+                  { text: order.placed_at.toLocaleDateString(), bold: true },
+                ],
+                [
+                  "Delivery By:",
+                  {
+                    text: order.delivery_by.toLocaleDateString(),
+                    bold: true,
+                  },
+                ],
+              ],
+            },
+            layout: "noBorders",
+          },
+        ],
+      },
+      {
+        canvas: [{ type: "line", x1: 0, y1: 5, x2: 515, y2: 5, lineWidth: 2 }],
+      },
+      {
+        columns: [
+          {
+            width: "*",
+            text: "Bill To",
+            style: "subheader",
+          },
+          {
+            width: "*",
+            text: "Ship To",
+            style: "subheader",
+          },
+        ],
+      },
+      {
+        columns: [
+          {
+            width: "*",
+            text: [
+              {
+                text: `${order.user.first_name} ${order.user.last_name}\n`,
+                bold: true,
+              },
+              order.user.email,
+            ],
+          },
+          {
+            width: "*",
+            text: [
+              {
+                text: `${order.shipping_address.address_type}\n`,
+                bold: true,
+              },
+              `${order.shipping_address.address}\n`,
+              `${order.shipping_address.district}, ${order.shipping_address.state} ${order.shipping_address.zip}\n`,
+              `Phone: ${order.shipping_address.phone}`,
+            ],
+          },
+        ],
+      },
+      { text: "Order Details", style: "subheader", margin: [0, 20, 0, 10] },
+      {
+        table: {
+          headerRows: 1,
+          widths: ["*", "auto", "auto", "auto", "auto", "auto", "auto"],
+          body: [
+            [
+              { text: "Product", style: "tableHeader" },
+              { text: "Variant", style: "tableHeader" },
+              { text: "Qty", style: "tableHeader" },
+              { text: "Price", style: "tableHeader" },
+              { text: "Discount", style: "tableHeader" },
+              { text: "Total", style: "tableHeader" },
+              { text: "Status", style: "tableHeader" },
+            ],
+            ...order.order_items.map((item) => [
+              item.product.name,
+              item.variant,
+              item.quantity.toString(),
+              `RS :${item.price.toFixed(2)}`,
+              `${(((item.price - item.total_price) / item.price) * 100).toFixed(
+                0
+              )}%`,
+              `RS :${item.total_price.toFixed(2)}`,
+              { text: item.order_status, bold: true },
+            ]),
+          ],
+        },
+      },
+      {
+        columns: [
+          { width: "*", text: "" },
+          {
+            width: "auto",
+            style: "totals",
+            table: {
+              widths: ["auto", "auto"],
+              body: [
+                [
+                  {
+                    text: "Order Summary",
+                    style: "subheader",
+                    colSpan: 2,
+                    alignment: "center",
+                  },
+                  {},
+                ],
+                [
+                  "Subtotal:",
+                  {
+                    text: `RS :${order.total_amount.toFixed(2)}`,
+                    alignment: "right",
+                  },
+                ],
+                [
+                  "Shipping Fee:",
+                  {
+                    text: `RS :${order.shipping_fee.toFixed(2)}`,
+                    alignment: "right",
+                  },
+                ],
+                ...(order.coupon_discount
+                  ? [
+                      [
+                        "Coupon Discount:",
+                        {
+                          text: `RS :${order.coupon_discount.toFixed(2)}`,
+                          alignment: "right",
+                        },
+                      ],
+                    ]
+                  : []),
+                [
+                  { text: "Total:", bold: true },
+                  {
+                    text: `RS :${order.total_price_with_discount.toFixed(2)}`,
+                    bold: true,
+                    alignment: "right",
+                  },
+                ],
+              ],
+            },
+            layout: {
+              hLineWidth: function (i, node) {
+                return i === 0 || i === node.table.body.length ? 2 : 1;
+              },
+              vLineWidth: function (i, node) {
+                return 0;
+              },
+              hLineColor: function (i, node) {
+                return i === 0 || i === node.table.body.length
+                  ? "black"
+                  : "gray";
+              },
+              paddingLeft: function (i, node) {
+                return 10;
+              },
+              paddingRight: function (i, node) {
+                return 10;
+              },
+              paddingTop: function (i, node) {
+                return 5;
+              },
+              paddingBottom: function (i, node) {
+                return 5;
+              },
+            },
+          },
+        ],
+      },
+      {
+        text: "Payment Information",
+        style: "subheader",
+        margin: [0, 20, 0, 5],
+      },
+      {
+        table: {
+          widths: ["auto", "*"],
+          body: [
+            ["Payment Method:", { text: order.payment_method, bold: true }],
+            ["Payment Status:", { text: order.payment_status, bold: true }],
+          ],
+        },
+        layout: {
+          hLineWidth: function (i, node) {
+            return i === 0 || i === node.table.body.length ? 2 : 1;
+          },
+          vLineWidth: function (i, node) {
+            return 0;
+          },
+          hLineColor: function (i, node) {
+            return i === 0 || i === node.table.body.length ? "black" : "gray";
+          },
+          paddingLeft: function (i, node) {
+            return 10;
+          },
+          paddingRight: function (i, node) {
+            return 10;
+          },
+          paddingTop: function (i, node) {
+            return 5;
+          },
+          paddingBottom: function (i, node) {
+            return 5;
+          },
+        },
+      },
+    ],
+    styles: {
+      header: {
+        fontSize: 28,
+        bold: true,
+        margin: [0, 0, 0, 10],
+      },
+      subheader: {
+        fontSize: 16,
+        bold: true,
+        margin: [0, 10, 0, 5],
+      },
+      tableHeader: {
+        bold: true,
+        fontSize: 13,
+        color: "black",
+      },
+      totals: {
+        margin: [0, 30, 0, 0],
+      },
+    },
+    defaultStyle: {
+      fontSize: 10,
+    },
+  };
+
+  const pdfDoc = printer.createPdfKitDocument(docDefinition);
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename=invoice-${orderId}.pdf`
+  );
+
+  pdfDoc.pipe(res);
+  pdfDoc.end();
 });

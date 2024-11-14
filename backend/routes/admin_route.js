@@ -48,7 +48,6 @@ import {
   delete_offer,
   get_all_offers,
 } from "../controllers/offer_controller.js";
-import { normalizeUserMiddleware } from "../middleware/normalize_user_middleware.js";
 import { check_role } from "../middleware/RBAC/check_role.js";
 import {
   download_sales_report_pdf,

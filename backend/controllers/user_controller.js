@@ -20,15 +20,10 @@ import bcrypt from "bcrypt";
 // Registering a new user
 // POST /api/users/signup
 export const register = AsyncHandler(async (req, res) => {
-  console.log(req.body);
   const { first_name, last_name, email, phone_number, password } = req.body;
-  console.log(req.body);
   const is_user_exists = await User.findOne({ email });
 
-  console.log(is_user_exists === null);
-
   if (is_user_exists === null) {
-    console.log("entered!!!!!!!!!!");
     const hashed_password = await hash_password(password);
     const new_user = await User.create({
       first_name,
@@ -37,7 +32,6 @@ export const register = AsyncHandler(async (req, res) => {
       phone_number,
       password: hashed_password,
     });
-    console.log("user registered successfully");
     const user_data = { id: new_user._id, role: "user" };
     const access_token = generateAccessToken(user_data);
     const refresh_token = generateRefreshToken(user_data);
@@ -72,9 +66,7 @@ export const register = AsyncHandler(async (req, res) => {
 // POST /api/users/login
 export const login = AsyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  console.log(email, password);
   const is_user_exists = await User.findOne({ email: email });
-  console.log(is_user_exists);
   if (is_user_exists) {
     if (!is_user_exists.is_blocked) {
       const is_password_match = await compare_password(
@@ -135,16 +127,13 @@ export const login = AsyncHandler(async (req, res) => {
 // generate an otp
 // POST /api/users/send-otp
 export const send_otp = AsyncHandler(async (req, res) => {
-  console.log("in send otp");
   const data = req.body;
-  console.log(data.email);
 
   if (!validator.isEmail(data.email)) {
     return res.status(400).send({ message: "Invalid email address" });
   }
 
   const is_user_exists = await User.findOne({ email: data.email });
-  console.log(is_user_exists);
 
   if (!is_user_exists) {
     const otp = generateOTP();
@@ -173,16 +162,13 @@ export const send_otp = AsyncHandler(async (req, res) => {
 // for forgot password
 // POST /api/users/send-otp-forgotpassword
 export const send_otp_for_forgot_password = AsyncHandler(async (req, res) => {
-  console.log("in send otp");
   const data = req.body;
-  console.log(data.email);
 
   if (!validator.isEmail(data.email)) {
     return res.status(400).send({ message: "Invalid email address" });
   }
 
   const is_user_exists = await User.findOne({ email: data.email });
-  console.log(is_user_exists);
 
   if (is_user_exists) {
     const otp = generateOTP();
@@ -214,7 +200,6 @@ export const verify_otp = AsyncHandler(async (req, res) => {
   const otpRecord = await OTP.find({ otp, email })
     .sort({ createdAt: -1 })
     .limit(1);
-  console.log(otpRecord);
   if (!otpRecord.length)
     return res.status(400).json({ invalid: true, message: "Invalid OTP" });
 
@@ -239,8 +224,6 @@ export const verify_otp = AsyncHandler(async (req, res) => {
 export const reset_password = AsyncHandler(async (req, res) => {
   const { id, password } = req.body;
 
-  console.log("reset_password =>>>", id, password);
-
   const hashed_password = await hash_password(password);
   const user = await User.findById(id);
 
@@ -261,8 +244,6 @@ export const check_current_password = AsyncHandler(async (req, res) => {
   const { password } = req.body;
   const user_id = req.user.id;
 
-  console.log("check_current_password =>>>", password, user_id);
-
   const user = await User.findById(user_id);
 
   const match = await bcrypt.compare(password, user.password);
@@ -280,8 +261,6 @@ export const check_current_password = AsyncHandler(async (req, res) => {
 export const reset_the_password = AsyncHandler(async (req, res) => {
   const id = req.user.id;
   const { password } = req.body;
-
-  console.log("reset_password =>>>", id, password);
 
   const hashed_password = await hash_password(password);
   const user = await User.findById(id);
@@ -310,10 +289,8 @@ export const logout = AsyncHandler(async (req, res) => {
 // POST /api/users/token
 export const new_access_token_generate = AsyncHandler(async (req, res) => {
   const refresh_token = req.cookies.user_refresh_token;
-  console.log("Received refresh token:", refresh_token);
 
   if (!refresh_token) {
-    console.log("No refresh token provided");
     return res.status(401).json({ message: "No refresh token provided" });
   }
 
@@ -323,12 +300,10 @@ export const new_access_token_generate = AsyncHandler(async (req, res) => {
     });
 
     if (!stored_refresh_token) {
-      console.log("Invalid refresh token");
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     if (stored_refresh_token.expiresAt <= new Date()) {
-      console.log("Refresh token expired");
       await RefreshToken.deleteOne({ token: refresh_token });
       return res
         .status(403)
@@ -336,27 +311,21 @@ export const new_access_token_generate = AsyncHandler(async (req, res) => {
     }
 
     const decoded = jwt.decode(refresh_token);
-    console.log("Decoded refresh token:", decoded);
 
-    // Verify the token
     const user = jwt.verify(refresh_token, process.env.JWT_REFRESH_KEY);
-    console.log("User after verifying refresh token:", user);
 
     const user_data = { id: user.id, role: user.role };
     const new_access_token = generateAccessToken(user_data);
 
-    console.log("New access token generated");
     return res.json({ access_token: new_access_token });
   } catch (error) {
     console.error("Error in token refresh:", error);
     if (error.name === "TokenExpiredError") {
-      console.log("Refresh token expired:", error.expiredAt);
       await RefreshToken.deleteOne({ token: refresh_token });
       return res
         .status(403)
         .json({ message: "Refresh token expired, please log in again." });
     } else {
-      console.log("Token verification failed:", error);
       return res.status(403).json({ message: "Token verification failed" });
     }
   }
@@ -365,8 +334,6 @@ export const new_access_token_generate = AsyncHandler(async (req, res) => {
 // -------------------------------------------------------------------------------
 
 export const get_user_specific_info = AsyncHandler(async (req, res) => {
-  console.log("in get user specific info");
-
   const user_data = await User.findById(req.user.id);
 
   res.json({ success: true, user_data });

@@ -10,8 +10,7 @@ export const get_products_details = AsyncHandler(async (req, res) => {
   const { page, limit } = req.query;
   const skip = (page - 1) * limit;
   const { sort, filter } = req.query;
-  console.log(req.query);
-  console.log(filter);
+
   const category_id =
     filter == "All"
       ? await Category.find({})
@@ -96,53 +95,43 @@ export const get_product_data_for_product_crud = AsyncHandler(
 // desc => for users home page
 // GET /api/users/products
 export const get_all_products_details = AsyncHandler(async (req, res) => {
-  try {
-    const products_data = await Product.find({ is_active: true })
-      .populate("offer")
-      .populate("category")
-      .populate("brand");
+  const products_data = await Product.find({ is_active: true })
+    .populate("offer")
+    .populate("category")
+    .populate("brand");
 
-    const products = products_data.filter((product) => product.category.status);
+  const products = products_data.filter((product) => product.category.status);
 
-    const categories = await Category.find({ status: true });
-    if (!categories) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to fetch categories" });
-    }
+  const categories = await Category.find({ status: true });
+  if (!categories) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch categories" });
+  }
 
-    const brands = await Brand.find({ status: true });
-    if (!brands) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Failed to fetch brands" });
-    }
+  const brands = await Brand.find({ status: true });
+  if (!brands) {
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch brands" });
+  }
 
-    if (!products.length) {
-      return res.status(200).json({
-        success: true,
-        message: "No products found",
-        products,
-        brands,
-        categories,
-      });
-    }
-
-    res.status(200).json({ success: true, products, brands, categories });
-  } catch (error) {
-    console.error("Error fetching product details:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching product details",
-      error: error.message,
+  if (!products.length) {
+    return res.status(200).json({
+      success: true,
+      message: "No products found",
+      products,
+      brands,
+      categories,
     });
   }
+
+  res.status(200).json({ success: true, products, brands, categories });
 });
 
 // GET /api/users/get_product/:id
 // GET /api/admin/products/:id
 export const get_product = AsyncHandler(async (req, res) => {
-  console.log("in get product admin");
   const productId = req.params.productId;
 
   const product = await Product.findOne({ _id: productId })
@@ -203,72 +192,58 @@ export const add_new_product = AsyncHandler(async (req, res) => {
     });
   }
 
-  try {
-    const brand_data = await Brand.findOne({ name: brand });
-    if (!brand_data) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Brand not found" });
-    }
-
-    const category_data = await Category.findOne({ title: category });
-    if (!category_data) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Category not found" });
-    }
-
-    const is_category_offer_exists = await Offer.findOne({
-      target_id: category_data._id,
-    });
-
-    const offer = is_category_offer_exists
-      ? is_category_offer_exists._id
-      : null;
-
-    const newProduct = new Product({
-      name,
-      brand: brand_data._id,
-      description,
-      category: category_data._id,
-      price: Number(price),
-      discount: Number(discount),
-      specifications,
-      tags: tags.split(",").map((tag) => tag.trim()),
-      releaseDate,
-      isFeatured,
-      variants: variants.map((variant, index) => ({
-        color: variant.color,
-        ram: variant.ram,
-        storage: variant.storage,
-        price: Number(variant.price),
-        stock: Number(variant.stock),
-        sku: variant.sku,
-        images: imagesByVariant[index] || [],
-      })),
-      offer: offer,
-    });
-
-    const savedProduct = await newProduct.save();
-
-    res.status(201).json({
-      success: true,
-      message: "Product added successfully",
-      product: savedProduct,
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to add product",
-      error: error.message,
-    });
+  const brand_data = await Brand.findOne({ name: brand });
+  if (!brand_data) {
+    return res.status(400).json({ success: false, message: "Brand not found" });
   }
+
+  const category_data = await Category.findOne({ title: category });
+  if (!category_data) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Category not found" });
+  }
+
+  const is_category_offer_exists = await Offer.findOne({
+    target_id: category_data._id,
+  });
+
+  const offer = is_category_offer_exists ? is_category_offer_exists._id : null;
+
+  const newProduct = new Product({
+    name,
+    brand: brand_data._id,
+    description,
+    category: category_data._id,
+    price: Number(price),
+    discount: Number(discount),
+    specifications,
+    tags: tags.split(",").map((tag) => tag.trim()),
+    releaseDate,
+    isFeatured,
+    variants: variants.map((variant, index) => ({
+      color: variant.color,
+      ram: variant.ram,
+      storage: variant.storage,
+      price: Number(variant.price),
+      stock: Number(variant.stock),
+      sku: variant.sku,
+      images: imagesByVariant[index] || [],
+    })),
+    offer: offer,
+  });
+
+  const savedProduct = await newProduct.save();
+
+  res.status(201).json({
+    success: true,
+    message: "Product added successfully",
+    product: savedProduct,
+  });
 });
 
 // PUT /api/admin/products/:producId
 export const update_product_details = AsyncHandler(async (req, res) => {
-  console.log("in update product details controller");
   const productId = req.params.productId;
 
   const {
@@ -297,151 +272,121 @@ export const update_product_details = AsyncHandler(async (req, res) => {
     });
   }
 
-  try {
-    const product_to_update = await Product.findById(productId);
-    console.log("two");
-    if (!product_to_update) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Product not found" });
-    }
+  const product_to_update = await Product.findById(productId);
+  if (!product_to_update) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Product not found" });
+  }
 
-    const brand_data = await Brand.findOne({ name: brand });
-    console.log("brand data =>", brand_data);
-    if (!brand_data) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Brand not found" });
-    }
+  const brand_data = await Brand.findOne({ name: brand });
+  if (!brand_data) {
+    return res.status(400).json({ success: false, message: "Brand not found" });
+  }
 
-    const category_data = await Category.findOne({ title: category });
-    if (!category_data) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Category not found" });
-    }
+  const category_data = await Category.findOne({ title: category });
+  if (!category_data) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Category not found" });
+  }
 
-    let is_updated = false;
+  let is_updated = false;
 
-    if (product_to_update.name !== name) {
-      product_to_update.name = name;
-      is_updated = true;
-    }
+  if (product_to_update.name !== name) {
+    product_to_update.name = name;
+    is_updated = true;
+  }
 
-    if (product_to_update.brand !== brand_data._id) {
-      product_to_update.brand = brand_data._id;
-      is_updated = brand_data._id;
-    }
+  if (product_to_update.brand !== brand_data._id) {
+    product_to_update.brand = brand_data._id;
+    is_updated = brand_data._id;
+  }
 
-    if (product_to_update.description !== description) {
-      product_to_update.description = description;
-      is_updated = true;
-    }
+  if (product_to_update.description !== description) {
+    product_to_update.description = description;
+    is_updated = true;
+  }
 
-    if (product_to_update.category !== category_data._id) {
-      const is_category_offer_exists = await Offer.findOne({
-        target_id: category_data._id,
+  if (product_to_update.category !== category_data._id) {
+    const is_category_offer_exists = await Offer.findOne({
+      target_id: category_data._id,
+    });
+
+    const offer = is_category_offer_exists
+      ? is_category_offer_exists._id
+      : null;
+    product_to_update.offer = offer;
+    product_to_update.category = category_data._id;
+    is_updated = true;
+  }
+
+  if (product_to_update.price !== Number(price)) {
+    product_to_update.price = Number(price);
+    is_updated = true;
+  }
+
+  if (product_to_update.discount !== Number(discount)) {
+    product_to_update.discount = Number(discount);
+    is_updated = true;
+  }
+
+  product_to_update.specifications = specifications;
+  product_to_update.tags = tags.split(",").map((tag) => tag.trim());
+  product_to_update.releaseDate = releaseDate;
+  if (product_to_update.isFeatured !== isFeatured) {
+    product_to_update.isFeatured = isFeatured;
+  }
+
+  product_to_update.variants = product_to_update.variants = variants.map(
+    (variant, index) => {
+      let existingImages = (variant.images || []).map((img) => {
+        const urlParts = img.preview.split("/");
+        return urlParts[urlParts.length - 1];
       });
 
-      const offer = is_category_offer_exists
-        ? is_category_offer_exists._id
-        : null;
-      product_to_update.offer = offer;
-      product_to_update.category = category_data._id;
-      is_updated = true;
+      existingImages = existingImages.filter(
+        (img) => img.startsWith("v") || img.startsWith("data")
+      );
+
+      const newImagesForVariant = imagesByVariant[index] || [];
+
+      return {
+        color: variant.color,
+        ram: variant.ram,
+        storage: variant.storage,
+        price: Number(variant.price),
+        stock: Number(variant.stock),
+        sku: variant.sku,
+        images: [...existingImages, ...newImagesForVariant],
+      };
     }
+  );
 
-    if (product_to_update.price !== Number(price)) {
-      product_to_update.price = Number(price);
-      is_updated = true;
-    }
+  await product_to_update.save();
 
-    if (product_to_update.discount !== Number(discount)) {
-      product_to_update.discount = Number(discount);
-      is_updated = true;
-    }
-
-    product_to_update.specifications = specifications;
-    product_to_update.tags = tags.split(",").map((tag) => tag.trim());
-    product_to_update.releaseDate = releaseDate;
-    if (product_to_update.isFeatured !== isFeatured) {
-      product_to_update.isFeatured = isFeatured;
-    }
-
-    const newImages = req.files.map((file) => file.filename);
-
-    product_to_update.variants = product_to_update.variants = variants.map(
-      (variant, index) => {
-        let existingImages = (variant.images || []).map((img) => {
-          const urlParts = img.preview.split("/");
-          return urlParts[urlParts.length - 1];
-        });
-
-        existingImages = existingImages.filter(
-          (img) => img.startsWith("v") || img.startsWith("data")
-        );
-        console.log("existing images =>", existingImages);
-
-        const newImagesForVariant = imagesByVariant[index] || [];
-        console.log("new image by variant", index, "==>", newImagesForVariant);
-
-        return {
-          color: variant.color,
-          ram: variant.ram,
-          storage: variant.storage,
-          price: Number(variant.price),
-          stock: Number(variant.stock),
-          sku: variant.sku,
-          images: [...existingImages, ...newImagesForVariant],
-        };
-      }
-    );
-
-    await product_to_update.save();
-    console.log("updated product ==>", product_to_update);
-
-    res.status(200).json({ success: true, product_to_update, brand, category });
-  } catch (error) {
-    console.error("Error fetching product details:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error while fetching product details",
-      error: error.message,
-    });
-  }
+  res.status(200).json({ success: true, product_to_update, brand, category });
 });
 
 // PATCH /api/admin/products/:productId
 export const update_product_status = AsyncHandler(async (req, res) => {
   const productId = req.params.productId;
 
-  try {
-    const product_to_update = await Product.findById(productId);
-    if (!product_to_update) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Product not found" });
-    }
-
-    product_to_update.is_active = !product_to_update.is_active;
-    await product_to_update.save();
-
-    res.status(200).json({ success: true, product_to_update });
-  } catch (error) {
-    console.error("Error updating product status:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server error while updating product status",
-      error: error.message,
-    });
+  const product_to_update = await Product.findById(productId);
+  if (!product_to_update) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Product not found" });
   }
+
+  product_to_update.is_active = !product_to_update.is_active;
+  await product_to_update.save();
+
+  res.status(200).json({ success: true, product_to_update });
 });
 
 export const variant_details_of_product = AsyncHandler(async (req, res) => {
-  console.log("in variant_details_of_product");
   const { productId, variant } = req.query;
-
-  console.log(req.query);
 
   if (!productId || !variant) {
     return res.status(400).json({
@@ -522,14 +467,12 @@ export const variant_details_of_product = AsyncHandler(async (req, res) => {
 // @desc getting product data for offers
 // GET /api/admin/products/products-data
 export const get_products_for_offers = AsyncHandler(async (req, res) => {
-  console.log("in get_products_for_offers");
   const { searchTerm } = req.query;
 
   const products = await Product.find(
     { name: { $regex: new RegExp(searchTerm, "i") }, is_active: true },
     { name: true }
   );
-  console.log(products);
 
   res.status(200).json(products);
 });

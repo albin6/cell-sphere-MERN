@@ -3,8 +3,6 @@ import Product from "../models/productModel.js";
 
 // for getting all reviews
 export const get_all_reviews_and_ratings = AsyncHandler(async (req, res) => {
-  console.log("in get all reviews and ratings");
-
   const { productId } = req.query;
 
   const product_data = await Product.findById(productId)
@@ -26,11 +24,8 @@ export const get_all_reviews_and_ratings = AsyncHandler(async (req, res) => {
 
 // for adding a new review
 export const add_new_review_and_rating = AsyncHandler(async (req, res) => {
-  console.log("in add new review and rating");
-
   const { rating, comment, productId } = req.body;
 
-  console.log(productId, typeof productId);
   const user_id = req.user.id;
 
   const product_data = await Product.findById(productId);

@@ -6,8 +6,6 @@ export const get_all_categories = AsyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
 
-  console.log(req.query);
-
   const total_category_count = await Category.countDocuments(
     {},
     { createdAt: false, updatedAt: false }
@@ -21,13 +19,11 @@ export const get_all_categories = AsyncHandler(async (req, res) => {
     .skip(skip)
     .limit(limit);
 
-  console.log("in get all categories => ", categories_data);
   res.json({ success: true, page, totalPages, categories_data });
 });
 
 // POST /api/admin/categories
 export const add_new_category = AsyncHandler(async (req, res) => {
-  console.log(req.body);
   const { title, status, description } = req.body;
 
   const is_category_exists = await Category.findOne({
@@ -51,7 +47,6 @@ export const add_new_category = AsyncHandler(async (req, res) => {
 
 // PUT /api/admin/categories
 export const update_category = AsyncHandler(async (req, res) => {
-  console.log("category put req body => ", req.body);
   const category = req.body;
   const category_data = await Category.findById(category._id);
 
@@ -78,8 +73,6 @@ export const update_category = AsyncHandler(async (req, res) => {
     category_data.updatedAt = Date.now();
   }
   await category_data.save();
-
-  console.log("after saving changes => ", category_data);
 
   res.json({ success: true, category_data });
 });

@@ -9,56 +9,45 @@ import SalesReport from "../models/salesModel.js";
 import Coupon from "../models/couponModel.js";
 
 const createSalesReport = async (orderId) => {
-  try {
-    const order = await Order.findById(orderId)
-      .populate("user")
-      .populate("order_items.product");
+  const order = await Order.findById(orderId)
+    .populate("user")
+    .populate("order_items.product");
 
-    if (!order) {
-      console.log("Order not found");
-      return;
-    }
-
-    // Initialize an array to hold the product details for the report entry
-    const products = order.order_items.map((item) => {
-      const itemTotalPrice = item.price * item.quantity;
-      const discountAmount = (item.discount / 100) * itemTotalPrice;
-
-      return {
-        product_id: item.product._id,
-        productName: item.product.name || "Product Name", // Assuming the product schema has a name field
-        quantity: item.quantity,
-        unitPrice: item.price,
-        totalPrice: itemTotalPrice,
-        discount: discountAmount,
-        couponDeduction: order.coupon_discount || 0,
-      };
-    });
-
-    // Calculate the final amount
-    const finalAmount =
-      order.total_price_with_discount ||
-      order.total_amount - order.coupon_discount;
-
-    // Create a single sales report entry for the order
-    const reportEntry = {
-      orderId: order._id,
-      customer_name: order.user.first_name + " " + order.user.last_name,
-      product: products,
-      finalAmount: finalAmount,
-      orderDate: order.placed_at,
-      customer: order.user._id,
-      paymentMethod: order.payment_method,
-      deliveryStatus: order.order_items[0].order_status, // Assuming all items have the same status
-    };
-
-    // Insert the entry into the SalesReport collection
-    await SalesReport.create(reportEntry);
-
-    console.log("Sales report entry created successfully!");
-  } catch (error) {
-    console.error("Error creating sales report:", error);
+  if (!order) {
+    return;
   }
+
+  const products = order.order_items.map((item) => {
+    const itemTotalPrice = item.price * item.quantity;
+    const discountAmount = (item.discount / 100) * itemTotalPrice;
+
+    return {
+      product_id: item.product._id,
+      productName: item.product.name || "Product Name",
+      quantity: item.quantity,
+      unitPrice: item.price,
+      totalPrice: itemTotalPrice,
+      discount: discountAmount,
+      couponDeduction: order.coupon_discount || 0,
+    };
+  });
+
+  const finalAmount =
+    order.total_price_with_discount ||
+    order.total_amount - order.coupon_discount;
+
+  const reportEntry = {
+    orderId: order._id,
+    customer_name: order.user.first_name + " " + order.user.last_name,
+    product: products,
+    finalAmount: finalAmount,
+    orderDate: order.placed_at,
+    customer: order.user._id,
+    paymentMethod: order.payment_method,
+    deliveryStatus: order.order_items[0].order_status,
+  };
+
+  await SalesReport.create(reportEntry);
 };
 
 // =============================================================================
@@ -67,13 +56,7 @@ const createSalesReport = async (orderId) => {
 
 // for placing an order
 export const place_order = AsyncHandler(async (req, res) => {
-  console.log("in place_order");
-
   const { order_data, is_coupon_applied, code } = req.body;
-
-  console.log("===================================");
-  console.log(order_data);
-  console.log("===================================");
 
   let is_any_product_is_stockout = false;
 
@@ -174,7 +157,6 @@ export const place_order = AsyncHandler(async (req, res) => {
 
     if (order_data.payment_method === "Wallet") {
       let wallet_exists = await Wallet.findOne({ user: req.user.id });
-      console.log(wallet_exists);
 
       if (wallet_exists) {
         if (!(wallet_exists.balance >= new_order.total_price_with_discount)) {
@@ -210,11 +192,9 @@ export const place_order = AsyncHandler(async (req, res) => {
         return acc + item.totalPrice;
       }, 0);
 
-      // Step 3: Update the cart with the new totalAmount
       await cart.save();
     }
 
-    // Save the order after updating the stock
     await new_order.save();
 
     await createSalesReport(new_order._id);
@@ -225,8 +205,6 @@ export const place_order = AsyncHandler(async (req, res) => {
 
 // for getting user specific orders
 export const get_user_specific_orders = AsyncHandler(async (req, res) => {
-  console.log("in get_all_orders");
-
   const user_id = req.user.id;
 
   const orders = await Order.find({ user: user_id })
@@ -244,11 +222,11 @@ export const get_user_specific_orders = AsyncHandler(async (req, res) => {
       customerName: order.user.first_name + " " + order.user.last_name,
       orderItems: order.order_items.map((item) => {
         const product = item.product;
-        const variant = product.variants.find((v) => v.sku === item.variant); // Matching the variant in the order with the product variant
+        const variant = product.variants.find((v) => v.sku === item.variant);
 
         return {
           productName: `${product.name} ( ${variant.ram}, ${variant.storage}, ${variant.color} )`,
-          image: variant.images[0], // Assuming the first image is used
+          image: variant.images[0],
           price: item.total_price,
           id: item._id,
           status: item.order_status,
@@ -271,8 +249,6 @@ export const get_user_specific_orders = AsyncHandler(async (req, res) => {
 
 // for getting specific order details of a customer
 export const get_specific_order_details = AsyncHandler(async (req, res) => {
-  console.log("in get_specific_order_details");
-
   const order_id = req.params.orderId;
 
   const order = await Order.findById(order_id)
@@ -284,13 +260,9 @@ export const get_specific_order_details = AsyncHandler(async (req, res) => {
       },
     });
 
-  console.log(order);
-
   if (!order) {
     return res.status(404).json({ success: false, message: "Order not found" });
   }
-
-  const eligibleReturnDate = return_eligible_date(order.placed_at);
 
   res.json({
     success: true,
@@ -306,8 +278,6 @@ export const get_specific_order_details = AsyncHandler(async (req, res) => {
 
 // for cancelling and order
 export const cancel_order = AsyncHandler(async (req, res) => {
-  console.log("In cancel_order_item");
-
   const { orderId } = req.params;
   const { sku } = req.body;
 
@@ -340,10 +310,8 @@ export const cancel_order = AsyncHandler(async (req, res) => {
     });
   }
 
-  // Update the status of the specific item to "Cancelled"
   orderItem.order_status = "Cancelled";
 
-  // Handle refund if payment method is Wallet or Paypal
   if (
     ["Wallet", "Paypal", "Razorpay"].includes(order.payment_method) &&
     order.payment_status == "Paid"
@@ -375,15 +343,15 @@ export const cancel_order = AsyncHandler(async (req, res) => {
 
   if (productData) {
     const variantData = productData.variants.find((v) => v.sku === sku);
+    const quantity_to_deduct = quantity * -1;
     await Product.findByIdAndUpdate(
       product,
-      { $inc: { quantity_sold: quantity * -1 } },
+      { $inc: { quantity_sold: quantity_to_deduct } },
       { new: true, runValidators: true }
     );
     if (variantData) {
       variantData.stock += quantity;
       await productData.save();
-      console.log("stock quantity updated");
     }
   }
 
@@ -403,181 +371,161 @@ export const cancel_order = AsyncHandler(async (req, res) => {
 
 // for getting all orders
 export const get_all_orders = AsyncHandler(async (req, res) => {
-  console.log("in get_all_orders");
-
   const { page = 1, limit = 10 } = req.query;
   const skip = (page - 1) * limit;
 
-  try {
-    const totalOrdersCount = await Order.countDocuments({});
+  const totalOrdersCount = await Order.countDocuments({});
 
-    const orders = await Order.find({})
-      .populate({
-        path: "user",
-        select: "first_name last_name",
-      })
-      .populate({
-        path: "order_items.product",
-        select: "name variants",
-      })
-      .sort({ placed_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+  const orders = await Order.find({})
+    .populate({
+      path: "user",
+      select: "first_name last_name",
+    })
+    .populate({
+      path: "order_items.product",
+      select: "name variants",
+    })
+    .sort({ placed_at: -1 })
+    .skip(skip)
+    .limit(parseInt(limit));
 
-    const totalPages = Math.ceil(totalOrdersCount / limit);
+  const totalPages = Math.ceil(totalOrdersCount / limit);
 
-    const formattedOrders = orders.map((order) => {
-      return {
-        user_full_name: `${order.user.first_name} ${order.user.last_name}`,
-        order_items: order.order_items.map((item) => {
-          const product = item.product;
+  const formattedOrders = orders.map((order) => {
+    return {
+      user_full_name: `${order.user.first_name} ${order.user.last_name}`,
+      order_items: order.order_items.map((item) => {
+        const product = item.product;
 
-          const variantDetails = product.variants.find(
-            (variant) =>
-              variant.sku === item.variant || variant.color === item.variant
-          );
+        const variantDetails = product.variants.find(
+          (variant) =>
+            variant.sku === item.variant || variant.color === item.variant
+        );
 
-          return {
-            product_name: product.name,
-            sku: item.variant,
-            variant: {
-              color: variantDetails?.color || item.variant,
-              ram: variantDetails?.ram || "N/A",
-              storage: variantDetails?.storage || "N/A",
-            },
-            quantity: item.quantity,
-            price: item.price,
-            discount: item.discount,
-            total_price: item.total_price,
-            order_status: item.order_status,
-            return_request: {
-              is_requested: item.return_request.is_requested,
-              is_approved: item.return_request.is_approved,
-              reason: item.return_request.reason || "",
-              comment: item.return_request.comment || "",
-              is_response_send: item.return_request?.is_response_send,
-            },
-          };
-        }),
-        _id: order._id,
-        payment_status: order.payment_status,
-        placed_at: order.placed_at,
-      };
-    });
+        return {
+          product_name: product.name,
+          sku: item.variant,
+          variant: {
+            color: variantDetails?.color || item.variant,
+            ram: variantDetails?.ram || "N/A",
+            storage: variantDetails?.storage || "N/A",
+          },
+          quantity: item.quantity,
+          price: item.price,
+          discount: item.discount,
+          total_price: item.total_price,
+          order_status: item.order_status,
+          return_request: {
+            is_requested: item.return_request.is_requested,
+            is_approved: item.return_request.is_approved,
+            reason: item.return_request.reason || "",
+            comment: item.return_request.comment || "",
+            is_response_send: item.return_request?.is_response_send,
+          },
+        };
+      }),
+      _id: order._id,
+      payment_status: order.payment_status,
+      placed_at: order.placed_at,
+    };
+  });
 
-    res.json({ success: true, totalPages, page, orders: formattedOrders });
-  } catch (error) {
-    console.error("Error in get_all_orders:", error);
-    res.status(500).json({ success: false, message: "Failed to fetch orders" });
-  }
+  res.json({ success: true, totalPages, page, orders: formattedOrders });
 });
 
 // for updating order status
 export const update_order_status = AsyncHandler(async (req, res) => {
-  console.log("in update_order_status");
-
   const order_id = req.params.orderId;
   const { status: new_status, sku } = req.body;
 
-  console.log(sku);
-  try {
-    const order = await Order.findById(order_id);
-    if (!order) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Order not found" });
-    }
-
-    if (order.payment_status == "Failed" && new_status == "Delivered") {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Cannot set the status to delivered without completing the payment",
-      });
-    }
-
-    console.log(order);
-    const item = order.order_items.find(
-      (orderItem) => orderItem.variant == sku
-    );
-
-    console.log(item);
-    if (!item) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found in order" });
-    }
-
-    item.order_status = new_status;
-    await SalesReport.updateOne(
-      { orderId: order._id, product: item.product },
-      { deliveryStatus: new_status }
-    );
-    if (new_status === "Cancelled") {
-      const { product, variant, quantity, total_price } = item;
-
-      const productData = await Product.findById(product);
-      if (productData) {
-        const variantData = productData.variants.find((v) => v.sku === variant);
-        if (variantData) {
-          console.log("quantity updated to " + variantData);
-          variantData.stock += quantity;
-          await productData.save();
-        }
-      }
-
-      if (order.payment_method !== "Cash on Delivery") {
-        let user_wallet = await Wallet.findOne({ user: order.user });
-        if (!user_wallet) {
-          user_wallet = new Wallet({
-            user: req.user.id,
-            balance: 0,
-            transactions: [],
-          });
-        }
-
-        user_wallet.balance += total_price;
-
-        await SalesReport.updateOne(
-          { orderId: order._id, product: item.product },
-          { finalAmount: total_price }
-        );
-
-        user_wallet.transactions.push({
-          transaction_date: new Date(),
-          transaction_type: "credit",
-          transaction_status: "completed",
-          amount: total_price,
-        });
-
-        await user_wallet.save();
-      }
-    }
-
-    await order.save();
-
-    res.json({
-      success: true,
-      message: "Order status updated successfully",
-      order,
-    });
-  } catch (error) {
-    console.error("Error in update_order_status:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to update order status" });
+  const order = await Order.findById(order_id);
+  if (!order) {
+    return res.status(404).json({ success: false, message: "Order not found" });
   }
+
+  if (order.payment_status == "Failed" && new_status == "Delivered") {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Cannot set the status to delivered without completing the payment",
+    });
+  }
+
+  const item = order.order_items.find((orderItem) => orderItem.variant == sku);
+
+  if (!item) {
+    return res
+      .status(404)
+      .json({ success: false, message: "Product not found in order" });
+  }
+
+  item.order_status = new_status;
+  await SalesReport.updateOne(
+    { orderId: order._id, product: item.product },
+    { deliveryStatus: new_status }
+  );
+  if (new_status === "Cancelled") {
+    const { product, variant, quantity, total_price } = item;
+
+    const productData = await Product.findById(product);
+    if (productData) {
+      const variantData = productData.variants.find((v) => v.sku === variant);
+      const quantity_to_deduct = quantity * -1;
+      await Product.findByIdAndUpdate(
+        product,
+        { $inc: { quantity_sold: quantity_to_deduct } },
+        { new: true, runValidators: true }
+      );
+
+      if (variantData) {
+        variantData.stock += quantity;
+        await productData.save();
+      }
+    }
+
+    if (order.payment_method !== "Cash on Delivery") {
+      let user_wallet = await Wallet.findOne({ user: order.user });
+      if (!user_wallet) {
+        user_wallet = new Wallet({
+          user: req.user.id,
+          balance: 0,
+          transactions: [],
+        });
+      }
+
+      user_wallet.balance += total_price;
+
+      await SalesReport.updateOne(
+        { orderId: order._id, product: item.product },
+        { finalAmount: total_price }
+      );
+
+      user_wallet.transactions.push({
+        transaction_date: new Date(),
+        transaction_type: "credit",
+        transaction_status: "completed",
+        amount: total_price,
+      });
+
+      await user_wallet.save();
+    }
+  }
+
+  await order.save();
+
+  res.json({
+    success: true,
+    message: "Order status updated successfully",
+    order,
+  });
 });
 
 // ---------------------------------------------------------------------------------
 
 export const request_for_return = AsyncHandler(async (req, res) => {
-  console.log("in return request");
   const { orderId } = req.params;
 
   const { productVariant, reason, comments } = req.body;
-
-  console.log(orderId, productVariant);
 
   const order_data = await Order.findOneAndUpdate(
     { _id: orderId, "order_items.variant": productVariant },
@@ -603,8 +551,6 @@ export const request_for_return = AsyncHandler(async (req, res) => {
 // for respond to return request ADMIN
 
 export const response_to_return_request = AsyncHandler(async (req, res) => {
-  console.log("in response to return request");
-
   const { orderId } = req.params;
 
   const { isApproved, productVariant } = req.body;
@@ -628,12 +574,10 @@ export const response_to_return_request = AsyncHandler(async (req, res) => {
         .json({ success: false, message: "Order not found" });
     }
 
-    console.log(order);
     const item = order.order_items.find(
       (orderItem) => orderItem.variant == productVariant
     );
 
-    console.log(item);
     if (!item) {
       return res
         .status(404)
@@ -651,13 +595,11 @@ export const response_to_return_request = AsyncHandler(async (req, res) => {
     if (productData) {
       const variantData = productData.variants.find((v) => v.sku === variant);
       if (variantData) {
-        console.log("quantity updated to " + variantData);
         variantData.stock += quantity;
         await productData.save();
       }
     }
 
-    // Step 1: Ensure the Wallet document exists
     await Wallet.findOneAndUpdate(
       { user: order.user },
       {
@@ -670,7 +612,6 @@ export const response_to_return_request = AsyncHandler(async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // Step 2: Increment the balance and add the transaction
     await Wallet.updateOne(
       { user: order.user },
       {
@@ -692,20 +633,18 @@ export const response_to_return_request = AsyncHandler(async (req, res) => {
       const variantData = productData.variants.find(
         (v) => v.sku === productVariant
       );
+      const quantity_to_deduct = quantity * -1;
       await Product.findByIdAndUpdate(
         product,
-        { $inc: { quantity_sold: quantity * -1 } },
+        { $inc: { quantity_sold: quantity_to_deduct } },
         { new: true, runValidators: true }
       );
       if (variantData) {
         variantData.stock += quantity;
         await productData.save();
-        console.log("stock quantity updated");
       }
     }
   }
-
-  console.log("after updating response for return request ====>", order_data);
 
   if (!order_data) {
     return res.status(404).json({ message: "Order or variant not found" });

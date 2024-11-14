@@ -4,7 +4,6 @@ import Wallet from "../models/walletModel.js";
 
 export const verify_referral_code = AsyncHandler(async (req, res) => {
   const { code } = req.body;
-  console.log(code);
 
   const user_with_referral_code = await User.findOne({ referral_code: code });
 
@@ -67,7 +66,6 @@ export const verify_referral_code = AsyncHandler(async (req, res) => {
 });
 
 export const get_referral_details = AsyncHandler(async (req, res) => {
-  console.log("in get refferal details");
   const user_data = await User.findOne({ _id: req.user.id });
 
   if (!user_data) {
@@ -78,8 +76,6 @@ export const get_referral_details = AsyncHandler(async (req, res) => {
 });
 
 export const change_status = AsyncHandler(async (req, res) => {
-  console.log("in change status");
-
   const user_data = await User.findByIdAndUpdate(
     req.user.id,
     {

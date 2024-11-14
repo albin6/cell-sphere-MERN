@@ -24,7 +24,7 @@ export default function ProductListing() {
   const [osExpanded, setOsExpanded] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState("priceLowHigh");
-  const itemsPerPage = 3;
+  const itemsPerPage = 6;
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

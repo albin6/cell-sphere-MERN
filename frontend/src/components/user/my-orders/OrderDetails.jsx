@@ -343,49 +343,51 @@ const OrderDetails = ({ orderId: propsOrderId }) => {
                           Order Status : {o.order_status}
                         </p>
                       </div>
-                      <div className="space-y-2 flex justify-end sm:space-y-0 sm:space-x-2">
-                        {o.order_status == "Returned" ? (
-                          <button
-                            className="cursor-not-allowed w-full sm:w-auto bg-gray-300 text-gray-500 px-3 py-1 rounded opacity-50"
-                            disabled
-                          >
-                            Returned
-                          </button>
-                        ) : o.order_status === "Cancelled" ? (
-                          <button
-                            className="cursor-not-allowed w-full sm:w-auto bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600"
-                            disabled
-                          >
-                            Cancelled
-                          </button>
-                        ) : o.order_status === "Delivered" ? (
-                          <button
-                            onClick={() => {
-                              setProductNameToReturn(o.product.name);
-                              setProductVariantToReturn(o.variant);
-                              setIsRequestModalOpen(true);
-                            }}
-                            className={`w-full sm:w-auto ${
-                              o.return_request?.is_requested && "opacity-50"
-                            } bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600`}
-                            disabled={o.return_request?.is_requested}
-                          >
-                            {o.return_request?.is_requested
-                              ? "Return request send"
-                              : "Return"}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              setSku(o.variant);
-                              handleOpenModal();
-                            }}
-                            className="w-full sm:w-auto bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600"
-                          >
-                            Cancel
-                          </button>
-                        )}
-                      </div>
+                      {!isAdminRoute && (
+                        <div className="space-y-2 flex justify-end sm:space-y-0 sm:space-x-2">
+                          {o.order_status == "Returned" ? (
+                            <button
+                              className="cursor-not-allowed w-full sm:w-auto bg-gray-300 text-gray-500 px-3 py-1 rounded opacity-50"
+                              disabled
+                            >
+                              Returned
+                            </button>
+                          ) : o.order_status === "Cancelled" ? (
+                            <button
+                              className="cursor-not-allowed w-full sm:w-auto bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600"
+                              disabled
+                            >
+                              Cancelled
+                            </button>
+                          ) : o.order_status === "Delivered" ? (
+                            <button
+                              onClick={() => {
+                                setProductNameToReturn(o.product.name);
+                                setProductVariantToReturn(o.variant);
+                                setIsRequestModalOpen(true);
+                              }}
+                              className={`w-full sm:w-auto ${
+                                o.return_request?.is_requested && "opacity-50"
+                              } bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600`}
+                              disabled={o.return_request?.is_requested}
+                            >
+                              {o.return_request?.is_requested
+                                ? "Return request send"
+                                : "Return"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setSku(o.variant);
+                                handleOpenModal();
+                              }}
+                              className="w-full sm:w-auto bg-red-500 text-white px-3 mt-5 py-1 rounded hover:bg-red-600"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

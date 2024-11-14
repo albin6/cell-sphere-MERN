@@ -12,11 +12,9 @@ export const authenticate_token = (req, res, next) => {
 
   try {
     const decode = jwt.verify(token, process.env.JWT_ACCESS_KEY);
-    console.log("in authenticate token middleware =>", decode);
-    req.user = decode; // Attach the user data to the request
-    next(); // Proceed to the next middleware or route handler
+    req.user = decode;
+    next();
   } catch (error) {
-    console.log("JWT verification error:", error);
     return res.status(401).json({ message: "Not authorized, token failed" });
   }
 };

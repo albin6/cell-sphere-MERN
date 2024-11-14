@@ -1,7 +1,6 @@
 import mail_sender from "./mailSender.js";
 
 const sendVerificationEmail = async (email, otp) => {
-  console.log("sendVerificationEmail ", email);
   try {
     const mail_response = await mail_sender(
       email,
@@ -22,7 +21,6 @@ const sendVerificationEmail = async (email, otp) => {
         </div>
       `
     );
-    console.log("Email response :", mail_response);
   } catch (error) {
     console.log(error);
   }

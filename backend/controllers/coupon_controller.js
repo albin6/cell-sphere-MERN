@@ -1,12 +1,9 @@
 import AsyncHandler from "express-async-handler";
 import Coupon from "../models/couponModel.js";
 import Category from "../models/categoryModel.js";
-import User from "../models/userModel.js";
 
 // for adding new coupon
 export const add_new_coupon = AsyncHandler(async (req, res) => {
-  console.log("in add_new_coupon");
-
   const {
     code,
     description,
@@ -33,7 +30,6 @@ export const add_new_coupon = AsyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid request data" });
   }
 
-  // check if coupon code already exists
   const existing_coupon = await Coupon.findOne({
     code: { $regex: new RegExp(code, "i") },
   });
@@ -50,7 +46,6 @@ export const add_new_coupon = AsyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Invalid category" });
   }
 
-  // create new coupon
   const new_coupon = await Coupon.create({
     code,
     description,
@@ -69,23 +64,17 @@ export const add_new_coupon = AsyncHandler(async (req, res) => {
 // for getting coupons in admin
 // GET /api/admin/coupons
 export const get_coupons = AsyncHandler(async (req, res) => {
-  console.log("in get_coupons");
-
   const { currentPage = 1, itemsPerPage = 10 } = req.query;
 
   const page = parseInt(currentPage, 10);
   const limit = parseInt(itemsPerPage, 10);
-  // Convert page and limit to integers
 
   const skip = (page - 1) * limit;
 
-  // Calculate total number of coupons
   const totalCoupons = await Coupon.countDocuments();
 
-  // Calculate total number of pages
   const totalPages = Math.ceil(totalCoupons / limit);
 
-  // Fetch the coupons with pagination
   const coupons = await Coupon.find({})
     .populate({
       path: "eligible_categories",
@@ -106,23 +95,17 @@ export const get_coupons = AsyncHandler(async (req, res) => {
 // for getting coupons by user
 // GET /api/users/coupons
 export const get_coupons_user = AsyncHandler(async (req, res) => {
-  console.log("in get_coupons");
-
   const { currentPage = 1, itemsPerPage = 10 } = req.query;
 
   const page = parseInt(currentPage, 10);
   const limit = parseInt(itemsPerPage, 10);
-  // Convert page and limit to integers
 
   const skip = (page - 1) * limit;
 
-  // Calculate total number of coupons
   const totalCoupons = await Coupon.countDocuments({ is_active: true });
 
-  // Calculate total number of pages
   const totalPages = Math.ceil(totalCoupons / limit);
 
-  // Fetch the coupons with pagination
   const coupons_data = await Coupon.find({ is_active: true })
     .populate("eligible_categories")
     .skip(skip)
@@ -152,19 +135,15 @@ export const get_coupons_user = AsyncHandler(async (req, res) => {
 
 // for updating coupon status
 export const update_coupon_status = AsyncHandler(async (req, res) => {
-  console.log("in update_coupon_status");
-
   const { couponId } = req.body;
 
   if (!couponId) {
-    console.log("request is invalid");
     return res.status(400).json({ message: "Invalid request data" });
   }
 
   const coupon_data = await Coupon.findById(couponId);
 
   if (!coupon_data) {
-    console.log("coupon not found");
     return res.status(404).json({ message: "Coupon not found" });
   }
 
@@ -177,43 +156,28 @@ export const update_coupon_status = AsyncHandler(async (req, res) => {
 
 // for deleting coupon
 export const delete_coupon = AsyncHandler(async (req, res) => {
-  console.log("In delete_coupon API");
-
   const { couponId } = req.body;
 
   if (!couponId) {
-    console.log("Invalid request: Missing couponId");
     return res.status(400).json({ message: "Invalid request data" });
   }
 
-  try {
-    const coupon_data = await Coupon.deleteOne({ _id: couponId });
+  const coupon_data = await Coupon.deleteOne({ _id: couponId });
 
-    if (coupon_data.deletedCount === 0) {
-      console.log("Coupon not found with ID:", couponId);
-      return res.status(404).json({ message: "Coupon not found" });
-    }
-
-    console.log("Coupon deleted successfully:", couponId);
-    res
-      .status(200)
-      .json({ success: true, message: "Coupon deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting coupon:", error);
-    res
-      .status(500)
-      .json({ message: "Server error occurred while deleting coupon" });
+  if (coupon_data.deletedCount === 0) {
+    return res.status(404).json({ message: "Coupon not found" });
   }
+
+  res
+    .status(200)
+    .json({ success: true, message: "Coupon deleted successfully" });
 });
 
 // for applying coupon
 export const apply_coupon = AsyncHandler(async (req, res) => {
-  console.log("In apply_coupon");
+  const items = req.body;
+  const { code } = items[0];
 
-  const items = req.body; // Array of items
-  const { code } = items[0]; // Coupon code is the same for all items
-
-  // Fetch the coupon by code
   const coupon = await Coupon.findOne({ code });
 
   if (!coupon) {
@@ -224,22 +188,23 @@ export const apply_coupon = AsyncHandler(async (req, res) => {
     return res.status(400).json({ message: "Coupon is not active" });
   }
 
-  // Check if the coupon has expired
   const currentDate = new Date();
   if (coupon.expiration_date < currentDate) {
     return res.status(400).json({ message: "Coupon has expired" });
   }
 
-  // Prepare an array to store responses for each item
   const response = [];
 
+  console.log(items);
   for (const item of items) {
     const { id, amount } = item;
 
-    // Check if the product category is eligible for the coupon
-    const isCategoryEligible = coupon.eligible_categories.some(
-      (categoryId) => categoryId.toString() === id._id || id
-    );
+    const isCategoryEligible = coupon.eligible_categories.some((categoryId) => {
+      console.log(categoryId == (id._id || id));
+      return categoryId == (id._id || id);
+    });
+
+    console.log("is eligible", isCategoryEligible);
 
     if (!isCategoryEligible) {
       response.push({
@@ -248,10 +213,9 @@ export const apply_coupon = AsyncHandler(async (req, res) => {
         discountAmount: 0,
         total_after_discount: amount,
       });
-      continue; // Skip further checks for this item
+      continue;
     }
 
-    // Check if minimum purchase amount is met
     if (coupon.min_purchase_amount > amount) {
       response.push({
         id,
@@ -262,7 +226,6 @@ export const apply_coupon = AsyncHandler(async (req, res) => {
       continue;
     }
 
-    // Check if the user has already applied the coupon
     const appliedUser = coupon.users_applied.find(
       (entry) => entry.user.toString() === req.user.id
     );
@@ -277,7 +240,6 @@ export const apply_coupon = AsyncHandler(async (req, res) => {
       continue;
     }
 
-    // Calculate discount
     let discountAmount;
     if (coupon.discount_type === "percentage") {
       discountAmount = Math.ceil((amount * coupon.discount_value) / 100);
@@ -293,7 +255,6 @@ export const apply_coupon = AsyncHandler(async (req, res) => {
 
     const total_after_discount = amount - discountAmount;
 
-    // Add item details to response array
     response.push({
       id,
       message: "Coupon applied successfully",
@@ -303,6 +264,5 @@ export const apply_coupon = AsyncHandler(async (req, res) => {
     });
   }
 
-  // Send the aggregated response
   res.status(200).json(response);
 });
