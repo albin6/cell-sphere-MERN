@@ -8,10 +8,12 @@ export const get_wallet_details = AsyncHandler(async (req, res) => {
 
   // Find the user's wallet in the database
   let user_wallet = await Wallet.findOne({ user: user_id });
-
+  console.log("wallet thappitt kittiyooooo=============>", user_wallet);
   if (!user_wallet) {
     user_wallet = new Wallet({ user: user_id, balance: 0 });
   }
+
+  console.log("dhee wallet=======>", user_wallet);
 
   res.json({ success: true, wallet: user_wallet });
 });

@@ -357,14 +357,13 @@ export const cancel_order = AsyncHandler(async (req, res) => {
       });
     }
 
-    const refundAmount = orderItem.price * (1 - orderItem.discount / 100);
-    user_wallet.balance += refundAmount;
+    user_wallet.balance += orderItem.total_price;
 
     user_wallet.transactions.push({
       transaction_date: new Date(),
       transaction_type: "credit",
       transaction_status: "completed",
-      amount: refundAmount,
+      amount: orderItem.total_price,
     });
 
     await user_wallet.save();
@@ -514,7 +513,7 @@ export const update_order_status = AsyncHandler(async (req, res) => {
       { deliveryStatus: new_status }
     );
     if (new_status === "Cancelled") {
-      const { product, variant, quantity, price, discount } = item;
+      const { product, variant, quantity, total_price } = item;
 
       const productData = await Product.findById(product);
       if (productData) {
@@ -536,19 +535,18 @@ export const update_order_status = AsyncHandler(async (req, res) => {
           });
         }
 
-        const refundAmount = price * (1 - discount / 100);
-        user_wallet.balance += refundAmount;
+        user_wallet.balance += total_price;
 
         await SalesReport.updateOne(
           { orderId: order._id, product: item.product },
-          { finalAmount: refundAmount }
+          { finalAmount: total_price }
         );
 
         user_wallet.transactions.push({
           transaction_date: new Date(),
           transaction_type: "credit",
           transaction_status: "completed",
-          amount: refundAmount,
+          amount: total_price,
         });
 
         await user_wallet.save();
@@ -646,7 +644,7 @@ export const response_to_return_request = AsyncHandler(async (req, res) => {
       { orderId: order._id, product: item.product },
       { deliveryStatus: "Returned" }
     );
-    const { product, variant, quantity, price, discount } = item;
+    const { product, variant, quantity, total_price } = item;
 
     const productData = await Product.findById(product);
     if (productData) {
@@ -658,36 +656,52 @@ export const response_to_return_request = AsyncHandler(async (req, res) => {
       }
     }
 
-    let user_wallet = await Wallet.findOne({ user: order.user });
-    if (!user_wallet) {
-      user_wallet = new Wallet({
-        user: req.user.id,
-        balance: 0,
-        transactions: [],
-      });
-    }
-
-    console.log("user wallet +=============>", user_wallet);
-
-    const refundAmount = price * (1 - discount / 100);
-    console.log(refundAmount);
-    user_wallet.balance += refundAmount;
-
-    await SalesReport.updateOne(
-      { orderId: order._id, product: item.product },
-      { finalAmount: refundAmount }
+    // Step 1: Ensure the Wallet document exists
+    await Wallet.findOneAndUpdate(
+      { user: order.user },
+      {
+        $setOnInsert: {
+          user: order.user,
+          balance: 0,
+          transactions: [],
+        },
+      },
+      { upsert: true, new: true }
     );
 
-    user_wallet.transactions.push({
-      transaction_date: new Date(),
-      transaction_type: "credit",
-      transaction_status: "completed",
-      amount: refundAmount,
-    });
-
-    await user_wallet.save();
+    // Step 2: Increment the balance and add the transaction
+    await Wallet.updateOne(
+      { user: order.user },
+      {
+        $inc: { balance: total_price },
+        $push: {
+          transactions: {
+            transaction_date: new Date(),
+            transaction_type: "credit",
+            transaction_status: "completed",
+            amount: total_price,
+          },
+        },
+      }
+    );
 
     await order.save();
+
+    if (productData) {
+      const variantData = productData.variants.find(
+        (v) => v.sku === productVariant
+      );
+      await Product.findByIdAndUpdate(
+        product,
+        { $inc: { quantity_sold: quantity * -1 } },
+        { new: true, runValidators: true }
+      );
+      if (variantData) {
+        variantData.stock += quantity;
+        await productData.save();
+        console.log("stock quantity updated");
+      }
+    }
   }
 
   console.log("after updating response for return request ====>", order_data);
