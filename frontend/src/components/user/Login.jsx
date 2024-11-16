@@ -163,6 +163,17 @@ export default function Login() {
                 </Link>
               </p>
             </div>
+            <div className="text-center mt-6">
+              <p className="text-sm text-gray-600">
+                Admin ?{" "}
+                <Link
+                  to={"/admin"}
+                  className="font-medium text-gray-800 hover:text-gray-700"
+                >
+                  Admin Login
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
