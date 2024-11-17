@@ -80,7 +80,7 @@ export default function AddFundModal({ isOpen = false, onClose = () => {} }) {
               </>
             </div>
           ))}
-          <div className="flex justify-end space-x-3">
+          <div className="flex justify-end mb-3 space-x-3">
             <button
               type="button"
               onClick={onClose}

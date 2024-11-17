@@ -9,6 +9,7 @@ import {
 import { useWalletBalance } from "../../../hooks/CustomHooks";
 import AddFundModal from "./AddFundModal";
 import Paypal from "../paypal-payment/Paypal";
+import { generateRandomCode } from "../../../utils/random-code/randomCodeGenerator";
 
 export default function Wallet() {
   const { data: wallet, isLoading } = useWalletBalance();
@@ -60,6 +61,7 @@ export default function Wallet() {
             <table className="w-full">
               <thead>
                 <tr className="text-left text-sm text-gray-500 border-b">
+                  <th className="py-2 px-4 font-medium">Transaction ID</th>
                   <th className="py-2 px-4 font-medium">Type</th>
                   <th className="py-2 px-4 font-medium">Amount</th>
                   <th className="py-2 px-4 font-medium">Date</th>
@@ -73,6 +75,9 @@ export default function Wallet() {
                       key={transaction._id}
                       className="border-b last:border-b-0"
                     >
+                      <td className="py-3 px-4">
+                        {generateRandomCode()}
+                      </td>
                       <td className="py-3 px-4">
                         {transaction.transaction_type === "debit" && (
                           <CreditCard className="w-4 h-4 text-red-500 inline mr-2" />
