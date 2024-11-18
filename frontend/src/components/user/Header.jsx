@@ -41,8 +41,8 @@ function Header() {
           className="text-2xl font-bold cursor-pointer"
           onClick={() => navigate("/")}
         >
-          <div className="w-4 h-4">
-          <img className="w-full h-full" src="https://res.cloudinary.com/dkph7vdgg/image/upload/v1731906415/favicon_tksbpk.avif" alt="logo" />
+          <div className="w-14 h-14 rounded-full">
+          <img className="rounded-full w-full h-full text-gray-800" src="https://res.cloudinary.com/dkph7vdgg/image/upload/v1731911490/cell-sphere_black_logo_xbd7kf.png" alt="logo" />
           </div>
         </div>
 
