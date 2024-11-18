@@ -41,7 +41,7 @@ function Header() {
           className="text-2xl font-bold cursor-pointer"
           onClick={() => navigate("/")}
         >
-          Logo
+          <img src="https://res.cloudinary.com/dkph7vdgg/image/upload/v1731906415/favicon_tksbpk.avif" alt="logo" />
         </div>
 
         <nav className="hidden md:flex space-x-4">
